@@ -1,0 +1,42 @@
+# 依赖与虚拟环境
+.venv/
+node_modules/
+__pycache__/
+*.pyc
+
+# 凭据（只提交 .env.example）
+.env
+.env.*
+!.env.example
+.token.json
+
+# 本机产物
+pw-profile/
+apache-jmeter-5.6.3/
+*.log
+*.png
+
+# 运行产物与抓包数据：含内网地址、业务数据、飞书文档标识
+cursor-chat-export/
+hexin-db-tools/*.json
+hexin-db-tools/*.txt
+hexin-db-tools/*.md
+hexin-data-gen/*.json
+hexin-data-gen/jmeter/
+hexin-data-gen/batch_ledger.csv
+hexin-data-gen/state.json
+
+# 一次性归档脚本：含批次路径和人员信息，只留本地
+hexin-db-tools/mark_*.py
+hexin-db-tools/update_*.py
+hexin-db-tools/register_*.py
+hexin-db-tools/make_liushihao_todo.py
+hexin-db-tools/make_missing_sql_report.py
+hexin-db-tools/make_prod_list.py
+hexin-db-tools/shorten_notes.py
+hexin-db-tools/fill_developer_names.py
+hexin-db-tools/prod_executed_mine.py
+hexin-db-tools/compare_ledger_db.py
+hexin-db-tools/verify_ddl.py
+hexin-db-tools/write_back_statuses.py
+hexin-db-tools/audit_entities_mine.py

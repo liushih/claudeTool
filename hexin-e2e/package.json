@@ -1,0 +1,11 @@
+{
+  "name": "hexin-e2e",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "smoke": "node smoke.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.64.1"
+  }
+}

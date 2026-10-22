@@ -1,0 +1,4 @@
+psycopg[binary]==3.3.6
+requests==2.34.2
+cryptography==50.0.2
+bcrypt==5.0.0
