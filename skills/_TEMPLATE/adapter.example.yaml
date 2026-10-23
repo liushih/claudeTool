@@ -1,0 +1,47 @@
+# 适配层模板
+# 复制到 <数据目录>/projects/<项目ID>/adapter.yaml，同目录建 .env。
+# 值一律写 ${变量}，真实值只放 .env。
+
+version: 1
+project: <项目ID>
+
+envs:
+  dev:
+    base_url: ${HEXIN_BASE_URL}      # 接口根地址，如 http://host/dev-api
+    db_prefix: DEV                   # 对应 .env 里的 DEV_HOST / DEV_PORT / DEV_USER / DEV_PASSWORD
+    database: ${HEXIN_DB_NAME}       # 校验用的库名
+  test:
+    base_url: ${HEXIN_BASE_URL_TEST}
+    db_prefix: TEST
+    database: ${HEXIN_DB_NAME_TEST}
+
+auth:
+  # none：无需认证；custom：用 impl 指定的脚本构建认证对象
+  type: none
+  # type: custom
+  # impl: scripts/auth_xxx.py:build   # build() 返回带 apply(headers) 的对象
+
+entities:
+  example_order:
+    description: 示例业务对象
+    stop_at: DONE                    # 造到哪个状态停
+    id_rule: "EX{run_id}{idx:04d}"   # 幂等键
+    steps:
+      - id: create                   # 结果写入 ctx.values.create
+        call: POST /example/create
+        body:
+          externalNo: ${ctx.external_no}
+      - id: wait_ready               # 轮询直到就绪
+        poll: GET /example/status
+        until: "resp['status'] == 'READY'"
+        timeout: 60
+      # - id: custom_step            # 少数需要代码的步骤
+      #   impl: scripts/chain.py:custom_step
+    verify:
+      sql: "select status from example_table where no = %(no)s"
+      expect: DONE
+
+pitfalls:
+  - id: P1
+    applies_to: [create]
+    summary: 示例：创建前必须先取 token

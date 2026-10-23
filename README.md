@@ -42,6 +42,31 @@ hexin-data-gen/.venv/Scripts/python.exe hexin-data-gen/batch_run.py --help
 cd hexin-e2e && node smoke.mjs
 ```
 
+## 数据工具包（skills + runtime）
+
+用白话触发连库与批量造数，规则本地累积，不重复推导。
+
+```powershell
+# 安装到 Claude（用户级）
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target claude -Scope global
+
+# 安装到 Cursor / Codex（项目级）
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Scope project -ProjectDir C:\project\hexincloud
+
+# 卸载
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove
+```
+
+| 项 | 位置 |
+|---|---|
+| 规则源文件 | `skills/` |
+| 执行引擎 | `runtime/` |
+| 本地数据（适配层、脚本、凭据） | `%USERPROFILE%\.hexin-tools`，可用 `HEXIN_DATA_HOME` 覆盖 |
+| 执行入口 | `python scripts\run.py --project <项目ID> --entity <业务对象> --count <数量>` |
+| 敏感扫描 | `python scripts\check_secrets.py` |
+
+本地数据目录不进 git。设计见 `docs/superpowers/specs/`，实现计划见 `docs/superpowers/plans/`。
+
 ## 路径配置
 
 脚本默认按目录关系推断，不需要改代码。需要覆盖时设置环境变量：
