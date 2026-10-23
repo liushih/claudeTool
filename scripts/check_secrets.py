@@ -3,10 +3,14 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
 from pathlib import Path
 
-SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__", ".superpowers", "projects", "pw-profile"}
+SKIP_DIRS = {
+    ".git", ".venv", "node_modules", "__pycache__", ".superpowers", "projects",
+    "pw-profile", "apache-jmeter-5.6.3",
+}
 SKIP_SUFFIXES = {".pyc", ".png", ".jpg", ".jpeg", ".pdf", ".lock", ".ico", ".exe"}
 
 PATTERNS = [
@@ -54,9 +58,17 @@ def scan(paths: list[Path]) -> list[tuple[Path, int, str]]:
     return hits
 
 
+def _tracked_files() -> list[Path]:
+    try:
+        out = subprocess.run(["git", "ls-files"], capture_output=True, text=True, check=True)
+    except (OSError, subprocess.CalledProcessError):
+        return [Path(".")]
+    return [Path(line) for line in out.stdout.splitlines() if line.strip()]
+
+
 def main(argv: list[str] | None = None) -> int:
     args = list(sys.argv[1:] if argv is None else argv)
-    paths = [Path(arg) for arg in args] or [Path(".")]
+    paths = [Path(arg) for arg in args] if args else _tracked_files()
     hits = scan(paths)
     for path, lineno, label in hits:
         print(f"{path}:{lineno}: {label}")

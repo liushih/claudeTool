@@ -23,7 +23,7 @@ def _parse_skill(path: Path) -> tuple[dict, str]:
 
 
 def render(tool: str, name: str, body: str, description: str, tools_dir: Path) -> str:
-    body = body.replace("{{TOOLS_DIR}}", str(tools_dir))
+    body = body.replace("{{TOOLS_DIR}}", Path(tools_dir).as_posix())
     if tool == "claude":
         return f"{GENERATED}---\nname: {name}\ndescription: {description}\n---\n\n{body}"
     if tool == "cursor":
@@ -46,7 +46,7 @@ def _codex_block(tools_dir: Path) -> str:
         meta, _ = _parse_skill(tools_dir / "skills" / name / "SKILL.md")
         lines.append(f"- {name}: {meta.get('description', '')}")
     lines.append("")
-    lines.append(f"详细规则：{tools_dir / 'skills'}")
+    lines.append(f"详细规则：{Path(tools_dir).as_posix()}/skills")
     lines.append(END)
     return "\n".join(lines) + "\n"
 

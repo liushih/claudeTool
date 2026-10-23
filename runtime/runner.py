@@ -124,7 +124,7 @@ def run_batch(entity: Entity, client_factory, count: int, workers: int,
     def work(indexes: list[int]) -> None:
         client = client_factory()
         for idx in indexes:
-            external_no = f"{run_id}{idx:04d}"
+            external_no = entity.id_rule.format(run_id=run_id, idx=idx)
             ctx = {"external_no": external_no, "values": {}, "stage": "init"}
             try:
                 run_entity(entity, client, ctx, impl_root)

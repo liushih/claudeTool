@@ -51,3 +51,22 @@ def test_resume_same_run_id_skips_previous(tmp_path):
     run_batch(_entity_ok(), lambda: _RecordingClient([]), count=2, workers=1, run_id="r", ledger=lg)
     out = run_batch(_entity_ok(), lambda: _RecordingClient([]), count=2, workers=1, run_id="r", ledger=lg)
     assert out["done"] == 0
+
+
+def test_uses_entity_id_rule(tmp_path):
+    lg = Ledger(tmp_path / "l.csv")
+    seen = []
+
+    class _C:
+        def request(self, method, path, json=None, params=None):
+            seen.append(json["no"])
+            return {}
+
+    entity = Entity(
+        id="e",
+        description="t",
+        id_rule="PB{run_id}{idx:04d}",
+        steps=[Step(id="create", call="POST /x", body={"no": "${ctx.external_no}"})],
+    )
+    run_batch(entity, lambda: _C(), count=1, workers=1, run_id="r", ledger=lg)
+    assert seen == ["PBr0000"]
