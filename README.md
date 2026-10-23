@@ -61,8 +61,9 @@ Cursor 和 Codex 没有这个市场，仍用安装脚本生成规则文件：
 # 安装到 Cursor / Codex（项目级）
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Scope project -ProjectDir C:\project\hexincloud
 
-# 卸载
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove
+# 卸载（Cursor / Codex 需要带 -ProjectDir）
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove -Target claude
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove -Target cursor,codex -Scope project -ProjectDir C:\project\hexincloud
 ```
 
 | 项 | 位置 |
@@ -70,7 +71,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove
 | 规则源文件 | `skills/` |
 | 执行引擎 | `runtime/` |
 | 本地数据（适配层、脚本、凭据） | `%USERPROFILE%\.hexin-tools`，可用 `HEXIN_DATA_HOME` 覆盖 |
-| 执行入口 | `python scripts\run.py --project <项目ID> --entity <业务对象> --count <数量>` |
+| 执行入口（造数） | `python scripts\run.py --project <项目ID> --entity <业务对象> --count <数量>` |
+| 执行入口（SQL） | `python scripts\query.py --project <项目ID> --env dev --sql "<SQL>"` |
 | 敏感扫描 | `python scripts\check_secrets.py` |
 
 本地数据目录不进 git。设计见 `docs/superpowers/specs/`，实现计划见 `docs/superpowers/plans/`。

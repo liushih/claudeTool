@@ -115,6 +115,8 @@ entities:
     stop_at: <目标状态>
     id_rule: "<幂等键模板>"
     steps:
+      - id: fetch_stage_token
+        call: GET /item-stage/items
       - id: create
         call: POST /path
         before: [fetch_stage_token]
@@ -224,7 +226,7 @@ python scripts/install.py --remove
 | .env 缺键 | 停，引导录入 |
 | 认证失败 | 报错并指向凭据位置，不盲目重试 |
 | 业务接口报错 | 先查 pitfalls，无匹配则记录并询问 |
-| 网络超时 | 自动重试 2 次后停 |
+| 网络超时 | 读请求自动重试 2 次后停；写请求不重试 |
 | 批量部分失败 | 记台账、给续跑命令，不报成功 |
 
 三条底线：写失败不自动补偿；不静默重试写请求；不把「跑完了」当「跑对了」。

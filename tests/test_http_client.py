@@ -48,3 +48,29 @@ def test_does_not_retry_on_4xx(monkeypatch):
     with pytest.raises(HttpClientError, match="404"):
         HttpClient("http://h", retries=2).request("GET", "/x")
     assert n["i"] == 1
+
+
+def test_does_not_retry_write_on_timeout(monkeypatch):
+    n = {"i": 0}
+
+    def slow(self, m, url, **kw):
+        n["i"] += 1
+        raise requests.Timeout("slow")
+
+    monkeypatch.setattr(requests.Session, "request", slow)
+    with pytest.raises(HttpClientError):
+        HttpClient("http://h", retries=2).request("POST", "/x")
+    assert n["i"] == 1
+
+
+def test_still_retries_read_on_timeout(monkeypatch):
+    n = {"i": 0}
+
+    def slow(self, m, url, **kw):
+        n["i"] += 1
+        raise requests.Timeout("slow")
+
+    monkeypatch.setattr(requests.Session, "request", slow)
+    with pytest.raises(HttpClientError):
+        HttpClient("http://h", retries=2).request("GET", "/x")
+    assert n["i"] == 3

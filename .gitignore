@@ -9,6 +9,11 @@ __pycache__/
 .env.*
 !.env.example
 .token.json
+*.token.json
+*.local.yaml
+
+# 适配层与业务脚本只存本地，不进仓库
+projects/
 
 # 本机产物
 pw-profile/

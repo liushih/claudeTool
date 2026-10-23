@@ -73,12 +73,16 @@ def _load_impl(spec: str, root: Path):
 def _run_step(step: Step, client, ctx: dict, impl_root: Path | None) -> None:
     if step.call:
         method, path = step.call.split(" ", 1)
-        ctx["values"][step.id] = client.request(method, path, json=_resolve(step.body, ctx))
+        ctx["values"][step.id] = client.request(
+            method, path,
+            json=_resolve(step.body, ctx),
+            params=_resolve(step.params, ctx),
+        )
     elif step.poll:
         method, path = step.poll.split(" ", 1)
         deadline = time.monotonic() + step.timeout
         while True:
-            resp = client.request(method, path)
+            resp = client.request(method, path, params=_resolve(step.params, ctx))
             if _until(step.until, resp, ctx):
                 break
             if time.monotonic() >= deadline:
@@ -96,20 +100,31 @@ def _run_step(step: Step, client, ctx: dict, impl_root: Path | None) -> None:
 def run_entity(entity: Entity, client, ctx: dict, impl_root: Path | None = None) -> dict:
     ctx.setdefault("values", {})
     by_id = {step.id: step for step in entity.steps}
+    executed: set[str] = set()
+    running: set[str] = set()
+
+    def execute(step: Step) -> None:
+        if step.id in executed:
+            return
+        if step.id in running:
+            raise RunError(f"步骤依赖成环：{step.id}")
+        running.add(step.id)
+        for pre in step.before:
+            if pre not in by_id:
+                raise RunError(f"步骤 {step.id} 依赖的 {pre} 不存在")
+            execute(by_id[pre])
+        _run_step(step, client, ctx, impl_root)
+        running.discard(step.id)
+        executed.add(step.id)
 
     for step in entity.steps:
-        for pre in step.before:
-            if pre not in ctx["values"]:
-                if pre not in by_id:
-                    raise RunError(f"步骤 {step.id} 依赖的 {pre} 不存在")
-                _run_step(by_id[pre], client, ctx, impl_root)
-        _run_step(step, client, ctx, impl_root)
+        execute(step)
 
     return ctx
 
 
 def run_batch(entity: Entity, client_factory, count: int, workers: int,
-              run_id: str, ledger, impl_root: Path | None = None) -> dict:
+              run_id: str, ledger, impl_root: Path | None = None, verify=None) -> dict:
     done = ledger.read_done(run_id)
     todo = [i for i in range(count) if i not in done]
     if not todo:
@@ -122,12 +137,20 @@ def run_batch(entity: Entity, client_factory, count: int, workers: int,
     lock = threading.Lock()
 
     def work(indexes: list[int]) -> None:
-        client = client_factory()
+        client = None
         for idx in indexes:
-            external_no = entity.id_rule.format(run_id=run_id, idx=idx)
-            ctx = {"external_no": external_no, "values": {}, "stage": "init"}
+            external_no = ""
+            ctx = {"external_no": "", "values": {}, "stage": "init"}
             try:
+                external_no = entity.id_rule.format(run_id=run_id, idx=idx)
+                ctx["external_no"] = external_no
+                if client is None:
+                    client = client_factory()
                 run_entity(entity, client, ctx, impl_root)
+                if verify is not None:
+                    ok, got = verify(ctx)
+                    if not ok:
+                        raise RunError(f"verify 未通过：实际 {got}")
             except Exception as exc:  # noqa: BLE001
                 reason = f"{type(exc).__name__}: {exc}"
                 with lock:

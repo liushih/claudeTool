@@ -70,3 +70,35 @@ def test_uses_entity_id_rule(tmp_path):
     )
     run_batch(entity, lambda: _C(), count=1, workers=1, run_id="r", ledger=lg)
     assert seen == ["PBr0000"]
+
+
+def test_bad_id_rule_counts_as_failure(tmp_path):
+    lg = Ledger(tmp_path / "l.csv")
+    entity = Entity(
+        id="e", description="t", id_rule="X{missing}", steps=[Step(id="s", call="GET /x")],
+    )
+    out = run_batch(entity, lambda: _RecordingClient([]), count=2, workers=1, run_id="r", ledger=lg)
+    assert out["done"] == 0
+    assert out["failed"] == 2
+
+
+def test_client_factory_error_counts_as_failure(tmp_path):
+    lg = Ledger(tmp_path / "l.csv")
+
+    def boom():
+        raise KeyError("base_url")
+
+    out = run_batch(_entity_ok(), boom, count=1, workers=1, run_id="r", ledger=lg)
+    assert out["done"] == 0
+    assert out["failed"] == 1
+
+
+def test_verify_mismatch_counts_as_failure(tmp_path):
+    lg = Ledger(tmp_path / "l.csv")
+    out = run_batch(
+        _entity_ok(), lambda: _RecordingClient([]), count=1, workers=1,
+        run_id="r", ledger=lg, verify=lambda ctx: (False, "NEW"),
+    )
+    assert out["done"] == 0
+    assert out["failed"] == 1
+    assert "verify" in out["failures"][0][1]

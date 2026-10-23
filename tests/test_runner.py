@@ -62,3 +62,34 @@ def test_impl_step_loads_function(tmp_path):
     entity = _entity([Step(id="hook", impl="hook.py:go")])
     out = run_entity(entity, _FakeClient({}), _ctx(), impl_root=tmp_path)
     assert out["values"]["hook"] == {"ok": True}
+
+
+def test_call_passes_params():
+    class _Rec:
+        def __init__(self):
+            self.params = None
+
+        def request(self, method, path, json=None, params=None):
+            self.params = params
+            return {}
+
+    client = _Rec()
+    entity = _entity([Step(id="q", call="GET /x", params={"no": "${ctx.external_no}"})])
+    run_entity(entity, client, _ctx())
+    assert client.params == {"no": "T"}
+
+
+def test_before_step_declared_later_runs_once():
+    calls = []
+
+    class _Rec:
+        def request(self, method, path, json=None, params=None):
+            calls.append(path)
+            return {}
+
+    entity = _entity([
+        Step(id="b", call="GET /b", before=["a"]),
+        Step(id="a", call="GET /a"),
+    ])
+    run_entity(entity, _Rec(), _ctx())
+    assert calls == ["/a", "/b"]

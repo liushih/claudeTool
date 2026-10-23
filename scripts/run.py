@@ -3,14 +3,40 @@
 from __future__ import annotations
 
 import argparse
+import sys
 from datetime import datetime
+from pathlib import Path
 
-from runtime.adapter import load_adapter
-from runtime.auth import build_auth
-from runtime.config import project_dir
-from runtime.http_client import HttpClient
-from runtime.ledger import Ledger
-from runtime.runner import run_batch
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from runtime import db  # noqa: E402
+from runtime.adapter import load_adapter  # noqa: E402
+from runtime.auth import build_auth  # noqa: E402
+from runtime.config import load_env, project_dir  # noqa: E402
+from runtime.http_client import HttpClient  # noqa: E402
+from runtime.ledger import Ledger  # noqa: E402
+from runtime.runner import run_batch  # noqa: E402
+from runtime.verify import run_verify  # noqa: E402
+
+
+def _build_verify(entity, env: dict, base: Path):
+    spec = entity.verify
+    if not spec:
+        return None
+    prefix = env.get("db_prefix")
+    database = env.get("database")
+    if not prefix or not database:
+        return None
+    db_env = load_env(base / ".env")
+
+    def verify(ctx):
+        conn = db.connect(db_env, prefix, database)
+        try:
+            return run_verify(conn, spec, {"no": ctx.get("external_no", "")})
+        finally:
+            conn.close()
+
+    return verify
 
 
 def main(argv: list[str] | None = None, client_factory=None) -> int:
@@ -40,7 +66,8 @@ def main(argv: list[str] | None = None, client_factory=None) -> int:
     run_id = args.run_id or datetime.now().strftime("%m%d%H%M%S")
     ledger = Ledger(base / "ledger.csv")
     result = run_batch(
-        entity, client_factory, args.count, args.workers, run_id, ledger, impl_root=base,
+        entity, client_factory, args.count, args.workers, run_id, ledger,
+        impl_root=base, verify=_build_verify(entity, env, base),
     )
 
     print(f"run_id={run_id} done={result['done']} failed={result['failed']}")

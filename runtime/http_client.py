@@ -9,6 +9,9 @@ class HttpClientError(Exception):
     pass
 
 
+IDEMPOTENT = {"GET", "HEAD", "OPTIONS"}
+
+
 class HttpClient:
     def __init__(self, base_url: str, auth=None, timeout: float = 15.0, retries: int = 2):
         self.base_url = base_url.rstrip("/")
@@ -21,8 +24,9 @@ class HttpClient:
         url = f"{self.base_url}/{path.lstrip('/')}"
         headers = self.auth.apply({}) if self.auth is not None else {}
         last: Exception | None = None
+        attempts = self.retries + 1 if method.upper() in IDEMPOTENT else 1
 
-        for _ in range(self.retries + 1):
+        for _ in range(attempts):
             try:
                 resp = self.session.request(
                     method, url, json=json, params=params, headers=headers, timeout=self.timeout,

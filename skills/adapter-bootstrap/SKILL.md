@@ -17,14 +17,19 @@ description: >-
 1. 确认项目 ID 与数据目录（默认 `%USERPROFILE%\.hexin-tools`）
 2. 收集：接口地址、认证方式、目标状态
 3. 逐项确认：字段映射、枚举取值、异步时序
+4. 读 `{{TOOLS_DIR}}/skills/_references/adapter-contract.md` 与 `pitfalls.md`
+
+## 路径
+
+`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
 
 ## 执行
 
-1. 从 `_TEMPLATE/adapter.example.yaml` 起草 `<数据目录>/projects/<项目ID>/adapter.yaml`
+1. 从 `{{TOOLS_DIR}}/skills/_TEMPLATE/adapter.example.yaml` 起草 `<数据目录>/projects/<项目ID>/adapter.yaml`
 2. 先跑 1 条：`python {{TOOLS_DIR}}/scripts/run.py --project <项目ID> --entity <业务对象> --count 1`
 3. 失败就查接口或问用户，不猜字段
-4. 跑通后补 `verify` 段
-5. 每条坑按四段（现象 / 原因 / 绕法 / 适用）追加到 `pitfalls.md`
+4. 跑通后补 `verify` 段，格式见 `{{TOOLS_DIR}}/skills/_TEMPLATE/adapter.example.yaml`
+5. 每条坑按四段（现象 / 原因 / 绕法 / 适用）追加到 `pitfalls.md`；追加前先读现有条目，按「现象」去重
 6. 用同一批次号重跑，确认幂等
 
 ## 失败处理

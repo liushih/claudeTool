@@ -60,3 +60,13 @@ def test_loads_and_substitutes(monkeypatch, tmp_path):
     a = adapter.load_adapter("demo")
     assert a.project == "demo"
     assert a.envs["dev"]["base_url"] == "http://example"
+
+
+def test_unknown_before_target_raises(monkeypatch, tmp_path):
+    _write_adapter(
+        tmp_path,
+        MINIMAL.replace("        call: POST /x", "        call: POST /x\n        before: [nope]"),
+    )
+    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    with pytest.raises(adapter.AdapterError, match="nope"):
+        adapter.load_adapter("demo")

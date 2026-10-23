@@ -49,3 +49,24 @@ def test_remove_deletes_generated(tmp_path, tools):
     install(["cursor"], "project", repo, tools, home=tmp_path)
     remove(["cursor"], "project", repo, home=tmp_path)
     assert not (repo / ".cursor" / "rules" / "data-gen-core.mdc").exists()
+
+
+def test_generated_claude_file_starts_with_frontmatter(tmp_path, tools):
+    paths = install(["claude"], "global", None, tools, home=tmp_path)
+    assert paths
+    for path in paths:
+        assert path.read_text(encoding="utf-8").startswith("---\n")
+
+
+def test_generated_cursor_file_starts_with_frontmatter(tmp_path, tools):
+    repo = tmp_path / "repo"
+    paths = install(["cursor"], "project", repo, tools, home=tmp_path)
+    assert paths
+    for path in paths:
+        assert path.read_text(encoding="utf-8").startswith("---\n")
+
+
+def test_remove_without_project_dir_skips_project_tools(tmp_path, tools):
+    install(["claude"], "global", None, tools, home=tmp_path)
+    remove(["claude", "cursor", "codex"], "global", None, home=tmp_path)
+    assert not (tmp_path / ".claude" / "skills" / "data-gen-core" / "SKILL.md").exists()

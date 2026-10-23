@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
 import yaml
@@ -25,11 +26,11 @@ def _parse_skill(path: Path) -> tuple[dict, str]:
 def render(tool: str, name: str, body: str, description: str, tools_dir: Path) -> str:
     body = body.replace("{{TOOLS_DIR}}", Path(tools_dir).as_posix())
     if tool == "claude":
-        return f"{GENERATED}---\nname: {name}\ndescription: {description}\n---\n\n{body}"
+        return f"---\nname: {name}\ndescription: {description}\n---\n\n{GENERATED}{body}"
     if tool == "cursor":
         return (
-            f"{GENERATED}---\ndescription: {description}\nglobs: []\n"
-            f"alwaysApply: false\n---\n\n{body}"
+            f"---\ndescription: {description}\nglobs: []\n"
+            f"alwaysApply: false\n---\n\n{GENERATED}{body}"
         )
     return body
 
@@ -113,6 +114,8 @@ def remove(targets: list[str], scope: str, project_dir, home: Path) -> None:
                     out.parent.rmdir()
 
         elif tool == "cursor":
+            if not project_dir:
+                continue
             base = _require_project(project_dir) / ".cursor" / "rules"
             for name in SKILLS:
                 out = base / f"{name}.mdc"
@@ -120,6 +123,8 @@ def remove(targets: list[str], scope: str, project_dir, home: Path) -> None:
                     out.unlink()
 
         elif tool == "codex":
+            if not project_dir:
+                continue
             out = _require_project(project_dir) / "AGENTS.md"
             if out.exists():
                 text = out.read_text(encoding="utf-8")
@@ -138,13 +143,17 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     targets = [t.strip() for t in args.target.split(",") if t.strip()]
-    if args.remove:
-        remove(targets, args.scope, args.project_dir, Path(args.home))
-        print("已移除生成文件")
-        return 0
+    try:
+        if args.remove:
+            remove(targets, args.scope, args.project_dir, Path(args.home))
+            print("已移除生成文件")
+            return 0
 
-    for path in install(targets, args.scope, args.project_dir, Path(args.tools_dir), Path(args.home)):
-        print(path)
+        for path in install(targets, args.scope, args.project_dir, Path(args.tools_dir), Path(args.home)):
+            print(path)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        return 2
     return 0
 
 

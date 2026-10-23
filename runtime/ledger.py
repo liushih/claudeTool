@@ -7,10 +7,7 @@ import threading
 from datetime import datetime
 from pathlib import Path
 
-FIELDS = [
-    "run_id", "idx", "external_no", "order_id", "order_no", "package_nos",
-    "out_nos", "picking_order_no", "delivery_nos", "stage", "status", "error", "updated_at",
-]
+FIELDS = ["run_id", "idx", "external_no", "stage", "status", "error", "updated_at"]
 
 
 class Ledger:

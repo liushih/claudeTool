@@ -23,10 +23,17 @@ description: >-
 1. 读 `<数据目录>/projects/<项目ID>/adapter.yaml`
 2. `entities` 中存在对应业务对象
 3. 同目录 `.env` 含 `envs.dev` 引用的全部变量
-4. 确认目标环境；用户未说明时问一次
+4. 读同目录 `pitfalls.md`，记下与本业务对象相关的坑
+5. 确认目标环境；用户未说明时问一次
 
 任一项缺失就停止执行并说明缺什么。
 **没有适配层时必须转 `adapter-bootstrap`，不允许现场推导。**
+
+## 路径
+
+`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时没有这个替换，改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
+
+规则细节按需读取：`{{TOOLS_DIR}}/skills/_references/adapter-contract.md`（字段与步骤写法）、`runtime-contract.md`（占位符、重试、verify）。
 
 ## 执行
 
@@ -37,7 +44,7 @@ python {{TOOLS_DIR}}/scripts/run.py --project <项目ID> --entity <业务对象>
 
 - 台账：`<数据目录>/projects/<项目ID>/ledger.csv`
 - 断点续跑：同一 `--run-id` 重跑会跳过已完成
-- 验证：适配层的 `verify` 段在任务结束后由调用方执行
+- 验证：适配层 `verify` 段由 `run.py` 自动执行，未通过计入 failed
 
 ## 失败处理
 
@@ -47,5 +54,7 @@ python {{TOOLS_DIR}}/scripts/run.py --project <项目ID> --entity <业务对象>
 | 业务对象不存在 | 列出可选项并询问 |
 | `.env` 缺键 | 报键名，引导录入 |
 | 认证失败 | 指向凭据位置，不盲目重试 |
-| 网络超时 | 依赖 runtime 重试 2 次，仍失败则停 |
+| 业务接口报错 | **先查 `pitfalls.md`** 有无同现象；命中就按绕法走，不重新试错 |
+| 网络超时 | 写请求不自动重试；读请求重试 2 次，仍失败则停 |
 | 批量部分失败 | 报告 done / failed，给续跑命令，不报成功 |
+| 出现新坑 | 按四段（现象 / 原因 / 绕法 / 适用）追加到 `pitfalls.md`，追加前按「现象」去重 |

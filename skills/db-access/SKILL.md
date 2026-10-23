@@ -18,11 +18,21 @@ description: >-
 2. 确认目标环境（dev / test / prod）；用户未说明时问一次
 3. 写操作前回显：环境、库、SQL、预计影响行数
 
+## 路径
+
+`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
+
 ## 执行
+
+```bash
+python {{TOOLS_DIR}}/scripts/query.py --project <项目ID> --env dev \
+  --sql "select status from wms_order where external_order_no = %(no)s" --param no=<单号>
+```
 
 - 只读：`select` 直接执行并返回结果
 - 写入：回显后直接执行，不再二次确认
 - `DROP` / `TRUNCATE` / 无 `WHERE` 的 `DELETE`：额外打印一行警示后照常执行
+- 占位符用 `%(name)s`，配合 `--param name=value`；不要拼字符串
 - 连接参数只来自 `.env`，不要在命令行明文传密码
 - 不自动提交事务，除非用户明确要求
 

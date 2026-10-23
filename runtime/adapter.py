@@ -112,6 +112,12 @@ def load_adapter(project_id: str) -> Adapter:
             verify=ent.get("verify"),
         )
 
+        step_ids = {s.id for s in steps}
+        for s in steps:
+            for pre in s.before:
+                if pre not in step_ids:
+                    raise AdapterError(f"步骤 {s.id} 依赖的步骤 {pre} 未在同实体 steps 中声明")
+
     if not entities:
         raise AdapterError("适配层没有定义任何 entities")
 
