@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib.util
 import re
+import threading
 import time
 from pathlib import Path
 
@@ -105,3 +106,52 @@ def run_entity(entity: Entity, client, ctx: dict, impl_root: Path | None = None)
         _run_step(step, client, ctx, impl_root)
 
     return ctx
+
+
+def run_batch(entity: Entity, client_factory, count: int, workers: int,
+              run_id: str, ledger, impl_root: Path | None = None) -> dict:
+    done = ledger.read_done(run_id)
+    todo = [i for i in range(count) if i not in done]
+    if not todo:
+        return {"done": 0, "failed": 0, "failures": []}
+
+    workers = max(1, min(workers, len(todo)))
+    chunks = [todo[i::workers] for i in range(workers)]
+    counter = {"done": 0, "failed": 0}
+    failures: list[tuple[int, str]] = []
+    lock = threading.Lock()
+
+    def work(indexes: list[int]) -> None:
+        client = client_factory()
+        for idx in indexes:
+            external_no = f"{run_id}{idx:04d}"
+            ctx = {"external_no": external_no, "values": {}, "stage": "init"}
+            try:
+                run_entity(entity, client, ctx, impl_root)
+            except Exception as exc:  # noqa: BLE001
+                reason = f"{type(exc).__name__}: {exc}"
+                with lock:
+                    counter["failed"] += 1
+                    failures.append((idx, reason))
+                ledger.append({
+                    "run_id": run_id, "idx": idx, "external_no": external_no,
+                    "stage": ctx.get("stage", ""), "status": "failed", "error": reason,
+                })
+            else:
+                with lock:
+                    counter["done"] += 1
+                ledger.append({
+                    "run_id": run_id, "idx": idx, "external_no": external_no,
+                    "stage": ctx.get("stage", ""), "status": "done",
+                })
+
+    threads = [
+        threading.Thread(target=work, args=(chunk,), daemon=True)
+        for chunk in chunks if chunk
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    return {"done": counter["done"], "failed": counter["failed"], "failures": failures}
