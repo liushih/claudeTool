@@ -1,0 +1,23 @@
+{
+  "name": "hexin-tools",
+  "owner": {
+    "name": "liushihao",
+    "email": "1739498098@qq.com"
+  },
+  "metadata": {
+    "description": "白话触发连库与批量造数的技能集",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "hexin-tools",
+      "source": "./",
+      "description": "白话触发连库与批量造数：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
+      "version": "1.0.0",
+      "author": {
+        "name": "liushihao",
+        "email": "1739498098@qq.com"
+      }
+    }
+  ]
+}

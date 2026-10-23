@@ -1,0 +1,20 @@
+{
+  "name": "hexin-tools",
+  "version": "1.0.0",
+  "description": "白话触发连库与批量造数：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
+  "author": {
+    "name": "liushihao",
+    "email": "1739498098@qq.com",
+    "url": "https://github.com/liushih"
+  },
+  "homepage": "https://github.com/liushih/claudeTool",
+  "repository": "https://github.com/liushih/claudeTool",
+  "license": "MIT",
+  "keywords": [
+    "skills",
+    "database",
+    "test-data",
+    "data-generation"
+  ],
+  "skills": "./skills/"
+}

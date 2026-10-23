@@ -46,10 +46,18 @@ cd hexin-e2e && node smoke.mjs
 
 用白话触发连库与批量造数，规则本地累积，不重复推导。
 
-```powershell
-# 安装到 Claude（用户级）
-powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target claude -Scope global
+Claude Code 走插件市场，装好后 skill 出现在 Settings → Skills 的 "From marketplaces you added" 一栏：
 
+```text
+/plugin marketplace add liushih/claudeTool
+/plugin install hexin-tools@hexin-tools
+```
+
+仓库是私有的，只有被授权的 GitHub 账号能装。
+
+Cursor 和 Codex 没有这个市场，仍用安装脚本生成规则文件：
+
+```powershell
 # 安装到 Cursor / Codex（项目级）
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Scope project -ProjectDir C:\project\hexincloud
 
