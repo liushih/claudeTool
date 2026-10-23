@@ -40,3 +40,6 @@ hexin-db-tools/compare_ledger_db.py
 hexin-db-tools/verify_ddl.py
 hexin-db-tools/write_back_statuses.py
 hexin-db-tools/audit_entities_mine.py
+
+# superpowers 执行工作区
+.superpowers/
