@@ -6,12 +6,19 @@ import yaml
 SKILLS = Path(__file__).resolve().parents[1] / "skills"
 
 
-@pytest.mark.parametrize("name", ["data-gen-core", "db-access", "adapter-bootstrap"])
+@pytest.mark.parametrize("name", ["data-gen-core", "db-access", "adapter-bootstrap", "report-writer"])
 def test_skill_has_frontmatter_and_sections(name):
     text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---")
     for section in ["## 适用场景", "## 前置检查", "## 执行", "## 失败处理"]:
         assert section in text
+
+
+def test_report_skill_asks_audience_and_scope():
+    text = (SKILLS / "report-writer" / "SKILL.md").read_text(encoding="utf-8")
+    assert "给谁" in text
+    assert "不猜" in text
+    assert "collect.py" in text
 
 
 def test_data_gen_requires_adapter_and_forbids_improvisation():

@@ -724,6 +724,11 @@ python-pptx==1.0.2
 
 Run: `.venv/Scripts/python.exe -m pytest tests/test_render.py -q`
 Expected: PASS（4 passed）
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add runtime/render.py scripts/render.py requirements.txt tests/test_render.py
 git commit -m "feat: Markdown 渲染 Word 与 PPT"
 ```
 

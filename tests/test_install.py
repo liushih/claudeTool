@@ -2,7 +2,7 @@ import pytest
 
 from scripts.install import install, remove
 
-NAMES = ("data-gen-core", "db-access", "adapter-bootstrap")
+NAMES = ("data-gen-core", "db-access", "adapter-bootstrap", "report-writer")
 
 
 @pytest.fixture
