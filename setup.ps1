@@ -22,7 +22,7 @@ if (Test-Path $configFile) {
     $configLines = @(Get-Content $configFile -Encoding UTF8 | Where-Object { $_ -notmatch '^tools_dir:' })
 }
 $configLines += "tools_dir: $($root -replace '\\', '/')"
-Set-Content -Path $configFile -Value $configLines -Encoding UTF8
+[System.IO.File]::WriteAllLines($configFile, [string[]]$configLines, (New-Object System.Text.UTF8Encoding($false)))
 Write-Host "[runtime] 工具目录已写入 $configFile" -ForegroundColor Cyan
 
 foreach ($tool in @('hexin-db-tools', 'hexin-data-gen')) {
