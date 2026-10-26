@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -48,9 +47,6 @@ class Adapter:
     pitfalls: list[dict]
 
 
-_VAR = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
-
-
 def _check_keys(step_id: str, where: str, value: Any) -> None:
     if isinstance(value, dict):
         for key, item in value.items():
@@ -66,19 +62,10 @@ def _check_keys(step_id: str, where: str, value: Any) -> None:
 
 
 def _substitute(value: Any, env: dict[str, str]) -> Any:
-    if isinstance(value, str):
-        def repl(match: re.Match[str]) -> str:
-            key = match.group(1)
-            if key not in env:
-                raise AdapterError(f"未定义变量 {key}")
-            return env[key]
-
-        return _VAR.sub(repl, value)
-    if isinstance(value, dict):
-        return {k: _substitute(v, env) for k, v in value.items()}
-    if isinstance(value, list):
-        return [_substitute(v, env) for v in value]
-    return value
+    try:
+        return config.substitute(value, env)
+    except config.ConfigError as exc:
+        raise AdapterError(str(exc)) from exc
 
 
 def load_adapter(project_id: str) -> Adapter:

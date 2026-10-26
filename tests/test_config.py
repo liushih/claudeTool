@@ -30,3 +30,12 @@ def test_resolve_project_without_any_source_raises(monkeypatch, tmp_path):
     monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(config.ConfigError):
         config.resolve_project(None)
+
+
+def test_substitute_keeps_nested_structure():
+    assert config.substitute({"a": ["${N}"]}, {"N": "5"}) == {"a": ["5"]}
+
+
+def test_substitute_reports_missing_var():
+    with pytest.raises(config.ConfigError, match="NOPE"):
+        config.substitute("${NOPE}", {})

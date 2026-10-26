@@ -3,13 +3,34 @@
 from __future__ import annotations
 
 import os
+import re
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 
 class ConfigError(Exception):
     pass
+
+
+_VAR = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
+
+
+def substitute(value: Any, env: dict[str, str]) -> Any:
+    if isinstance(value, str):
+        def repl(match: re.Match[str]) -> str:
+            key = match.group(1)
+            if key not in env:
+                raise ConfigError(f"未定义变量 {key}")
+            return env[key]
+
+        return _VAR.sub(repl, value)
+    if isinstance(value, dict):
+        return {k: substitute(v, env) for k, v in value.items()}
+    if isinstance(value, list):
+        return [substitute(v, env) for v in value]
+    return value
 
 
 def data_home() -> Path:
