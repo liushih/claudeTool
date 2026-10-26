@@ -46,5 +46,10 @@ hexin-db-tools/verify_ddl.py
 hexin-db-tools/write_back_statuses.py
 hexin-db-tools/audit_entities_mine.py
 
+# 其他任务的临时产物：含分支名单、抓包结果与明文凭据，只留本地
+branch-cleanup/
+dark-scan/
+elk-browser/
+
 # superpowers 执行工作区
 .superpowers/
