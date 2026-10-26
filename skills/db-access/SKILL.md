@@ -22,6 +22,8 @@ description: >-
 
 `{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
 
+执行优先用 `{{TOOLS_DIR}}/.venv/Scripts/python.exe`；该文件不存在时用 `python`，并先 `pip install -r {{TOOLS_DIR}}/requirements.txt`。
+
 ## 执行
 
 ```bash

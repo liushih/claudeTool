@@ -1,7 +1,17 @@
-# 新机器初始化：创建虚拟环境、安装依赖、生成 .env
+﻿# 新机器初始化：创建虚拟环境、安装依赖、生成 .env
 # 用法：powershell -ExecutionPolicy Bypass -File .\setup.ps1
 $ErrorActionPreference = 'Stop'
 $root = $PSScriptRoot
+
+# 工具包 runtime（scripts/run.py、query.py、install.py）
+$rootPy = Join-Path $root '.venv\Scripts\python.exe'
+if (-not (Test-Path $rootPy)) {
+    Write-Host '[runtime] 创建虚拟环境' -ForegroundColor Cyan
+    python -m venv (Join-Path $root '.venv')
+}
+Write-Host '[runtime] 安装依赖' -ForegroundColor Cyan
+& $rootPy -m pip install --upgrade pip
+& $rootPy -m pip install -r (Join-Path $root 'requirements.txt')
 
 foreach ($tool in @('hexin-db-tools', 'hexin-data-gen')) {
     $dir = Join-Path $root $tool

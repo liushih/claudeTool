@@ -4,15 +4,19 @@ hexincloud 项目的独立工具集，放在仓库外，可跨机器复用。
 
 ## 新机器上手
 
+需要 Python 3.11+、Node.js（仅浏览器工具用）。
+
 ```powershell
 git clone <本仓库地址> C:\project\claudeTool
 cd C:\project\claudeTool
 powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-`setup.ps1` 会建两个虚拟环境、装依赖、从 `.env.example` 生成 `.env`。生成后需要手工填账号密码，见「凭据」一节。
+`setup.ps1` 会建三个虚拟环境（根目录的工具包 runtime，加上两个老工具）、装依赖、从 `.env.example` 生成 `.env`。生成后需要手工填账号密码，见「凭据」一节。
 
 前提：`hexincloud` 仓库与本目录同级（`C:\project\hexincloud`）；不在同级时设置 `HEXIN_REPO`。
+
+之后按下一节把 skill 装进 AI 工具。工具包本身不需要单独「注册」，`~/.hexin-tools` 在第一次接入业务时自动生成。
 
 ## 目录
 
@@ -52,6 +56,8 @@ Claude Code 走插件市场，装好后 skill 出现在 Settings → Skills 的 
 /plugin marketplace add liushih/claudeTool
 /plugin install hexin-tools@hexin-tools
 ```
+
+插件只分发规则，不装 Python 依赖。仍然要把仓库 clone 到本机并跑一次 `setup.ps1`，否则 skill 里的命令会因缺包失败。
 
 仓库是私有的，只有被授权的 GitHub 账号能装。
 

@@ -1,4 +1,4 @@
-param(
+﻿param(
     [string]$Target = "claude,cursor,codex",
     [ValidateSet("global", "project")][string]$Scope = "global",
     [string]$ProjectDir = "",

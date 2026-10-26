@@ -31,7 +31,9 @@ description: >-
 
 ## 路径
 
-`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时没有这个替换，改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
+`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
+
+执行优先用 `{{TOOLS_DIR}}/.venv/Scripts/python.exe`；该文件不存在时用 `python`，并先 `pip install -r {{TOOLS_DIR}}/requirements.txt`。
 
 规则细节按需读取：`{{TOOLS_DIR}}/skills/_references/adapter-contract.md`（字段与步骤写法）、`runtime-contract.md`（占位符、重试、verify）。
 
