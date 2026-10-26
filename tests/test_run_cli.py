@@ -60,7 +60,7 @@ def test_cli_runs_outside_pytest(tmp_path):
     root = Path(__file__).resolve().parents[1]
     out = subprocess.run(
         [sys.executable, str(root / "scripts" / "run.py"), "--help"],
-        cwd=tmp_path, capture_output=True, text=True,
+        cwd=tmp_path, capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert out.returncode == 0, out.stderr
 

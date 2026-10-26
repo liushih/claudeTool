@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 import csv
+import re
 import threading
 from datetime import datetime
 from pathlib import Path
 
 FIELDS = ["run_id", "idx", "external_no", "stage", "status", "error", "updated_at"]
+
+_SECRETS = [
+    re.compile(r"eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"),
+    re.compile(r"(?i)bearer\s+[A-Za-z0-9._~+/-]{12,}=*"),
+]
+
+
+def _redact(text: str) -> str:
+    for pattern in _SECRETS:
+        text = pattern.sub("<redacted>", text)
+    return text
 
 
 class Ledger:
@@ -31,6 +43,7 @@ class Ledger:
 
     def append(self, row: dict) -> None:
         record = {field: row.get(field, "") for field in FIELDS}
+        record["error"] = _redact(str(record["error"]))
         record["updated_at"] = record["updated_at"] or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         with self._lock:
             new_file = not self.path.exists()

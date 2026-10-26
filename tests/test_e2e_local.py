@@ -66,6 +66,7 @@ def test_cli_end_to_end_and_resume(tmp_path):
                  "--project", "demo", "--entity", "order",
                  "--count", "2", "--workers", "2", "--run-id", "e2e"],
                 cwd=tmp_path, env=env, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
             )
 
         first = run()

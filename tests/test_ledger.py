@@ -38,3 +38,15 @@ def test_header_carries_no_business_columns(tmp_path):
     header = (tmp_path / "l.csv").read_text(encoding="utf-8").splitlines()[0]
     for column in ("order_no", "package_nos", "out_nos", "picking_order_no", "delivery_nos"):
         assert column not in header
+
+
+def test_error_column_redacts_jwt(tmp_path):
+    lg = Ledger(tmp_path / "l.csv")
+    lg.append({
+        "run_id": "r", "idx": 0, "status": "failed",
+        "error": "token 无效：eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc",
+    })
+    text = (tmp_path / "l.csv").read_text(encoding="utf-8")
+    assert "eyJhbGci" not in text
+    assert "token 无效" in text
+    assert "<redacted>" in text
