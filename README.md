@@ -4,7 +4,7 @@
 </h1>
 
 <h3 align="center">
-  hexincloud 的 AI 数据工具集 · 白话连库与批量造数
+  面向业务系统的 AI 数据工具集 · 白话连库与批量造数
 </h3>
 
 <p align="center">
@@ -25,6 +25,9 @@
 
 业务规则不写在提示词里：每个项目的字段、枚举、时序存在本机适配层，用一次记一次。
 凭据同样只存本机，不进仓库。
+
+每个项目一份适配层，互相独立。仓库自带的示例和旧工具面向 hexincloud，
+接入其他项目只需新建 `<数据目录>/projects/<新项目ID>/`。
 
 ## Install
 
@@ -99,6 +102,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Sco
 
 ## Features
 
+- 项目无关：接口用 `adapter.yaml` 描述，每个项目一份，互不影响
+- 当前支持 HTTP JSON 接口 + PostgreSQL；其他数据库需扩 `runtime/db.py`
 - 规则本地化：字段、枚举、时序沉淀在 `~/.hexin-tools`，不重复推导
 - 缺失即停：没有适配层就转「接入」，不现场猜接口
 - 断点续跑：同一批次号重跑只补失败和没跑到的
