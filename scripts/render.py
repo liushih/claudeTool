@@ -28,7 +28,6 @@ def main(argv: list[str] | None = None) -> int:
     source = Path(args.input)
     text = source.read_text(encoding="utf-8")
     title = args.title or parse_markdown(text)[0] or "报告"
-
     formats = [item.strip() for item in args.format.split(",") if item.strip()]
     out_dir = Path(args.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)

@@ -27,10 +27,11 @@ def test_data_gen_requires_adapter_and_forbids_improvisation():
     assert "不允许现场推导" in text
 
 
-def test_trigger_routing_covers_four_intents():
+def test_trigger_routing_covers_all_intents():
     text = (SKILLS / "_references" / "trigger-routing.md").read_text(encoding="utf-8")
-    for word in ["造数", "连库", "接入", "沉淀"]:
+    for word in ["造数", "连库", "接入", "报告", "沉淀"]:
         assert word in text
+    assert "report-writer" in text
 
 
 def test_adapter_example_parses():

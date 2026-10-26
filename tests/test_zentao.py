@@ -47,6 +47,13 @@ class _Handler(BaseHTTPRequestHandler):
         pass
 
 
+@pytest.fixture(autouse=True)
+def isolated_cache(tmp_path, monkeypatch):
+    cache = tmp_path / "zentao-cache.json"
+    monkeypatch.setenv("ZENTAO_TOKEN_CACHE", str(cache))
+    return cache
+
+
 @pytest.fixture
 def server():
     srv = ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
@@ -60,6 +67,42 @@ def test_client_logs_in_and_sends_token(server, tmp_path):
     client = ZentaoClient(server, "me", "pw", cache_path=tmp_path / "t.json")
     assert client.login() == "tok-1"
     assert client.get("/projects/73/executions")["executions"][0]["id"] == 101
+
+
+def test_cache_path_defaults_to_env_override(server, isolated_cache):
+    client = ZentaoClient(server, "me", "pw")
+    client.login()
+    assert isolated_cache.exists()
+
+
+def test_forced_relogin_without_password_is_actionable(server, tmp_path):
+    cache = tmp_path / "stale.json"
+    cache.write_text(
+        json.dumps({"url": server, "token": "stale", "account": "me"}), encoding="utf-8"
+    )
+    client = ZentaoClient(server, "me", "", cache_path=cache)
+    with pytest.raises(ZentaoError, match="password"):
+        client.login(force=True)
+
+
+def test_pages_warns_when_key_absent():
+    from runtime.zentao import _pages
+
+    class _Client:
+        def get(self, path, params=None):
+            return {"data": []}
+
+    warnings: list[str] = []
+    items = _pages(_Client(), "/tasks", "tasks", {}, warnings)
+    assert items == []
+    assert any("tasks" in warning for warning in warnings)
+
+
+def test_v1_api_is_rejected_explicitly():
+    cfg = ZentaoConfig(api="v1", base_url="http://127.0.0.1:1", account="me")
+    tasks, bugs, warnings = collect_zentao(cfg, date(2026, 10, 1), date(2026, 10, 7))
+    assert tasks == [] and bugs == []
+    assert any("v1" in warning and "未实现" in warning for warning in warnings)
 
 
 def test_failed_login_raises(tmp_path):

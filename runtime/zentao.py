@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from datetime import date
 from pathlib import Path
 
@@ -34,12 +35,17 @@ class ZentaoClient:
         self.base_url = base_url.rstrip("/")
         self.account = account
         self.password = password
-        self.cache_path = Path(cache_path) if cache_path else Path.home() / ".zentao-token.json"
+        self.cache_path = Path(cache_path) if cache_path else self._default_cache_path()
         self.token = token or (self._cached_token() if not password else "")
 
     def login(self, force: bool = False) -> str:
         if self.token and not force:
             return self.token
+        if not self.password:
+            self._clear_cache()
+            raise ZentaoError(
+                "禅道缓存 token 已失效且未配置 password，请在 report.yaml 或 .env 补充 ZENTAO_PASSWORD"
+            )
         try:
             resp = requests.post(
                 f"{self.base_url}{API_ROOT}/users/login",
@@ -79,6 +85,10 @@ class ZentaoClient:
             raise ZentaoError(f"禅道接口报错：{message or payload.get('status')}")
         return payload
 
+    def _default_cache_path(self) -> Path:
+        override = os.getenv("ZENTAO_TOKEN_CACHE")
+        return Path(override) if override else Path.home() / ".zentao-token.json"
+
     def _cached_token(self) -> str:
         try:
             data = json.loads(self.cache_path.read_text(encoding="utf-8"))
@@ -98,6 +108,12 @@ class ZentaoClient:
                 ),
                 encoding="utf-8",
             )
+        except OSError:
+            pass
+
+    def _clear_cache(self) -> None:
+        try:
+            self.cache_path.unlink()
         except OSError:
             pass
 
@@ -129,6 +145,8 @@ def _pages(client: ZentaoClient, path: str, key: str, params: dict, warnings: li
 
     for page in range(1, MAX_PAGES + 1):
         payload = client.get(path, {**params, "recPerPage": PAGE_SIZE, "pageID": page})
+        if key not in payload:
+            warnings.append(f"{path} 返回缺少 {key} 字段")
         if total is None:
             total = _payload_total(payload)
 
@@ -176,6 +194,9 @@ def collect_zentao(
     tasks: list[dict] = []
     bugs: list[dict] = []
     warnings: list[str] = []
+
+    if cfg.api == "v1":
+        return [], [], ["禅道 v1 驱动未实现，请改用 api: v2"]
 
     try:
         client = ZentaoClient(cfg.base_url, cfg.account, cfg.password)

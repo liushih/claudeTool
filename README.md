@@ -141,7 +141,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 | 路径 | 用途 |
 | --- | --- |
-| `skills/` | 三个技能的规则文件、契约文档与模板 |
+| `skills/` | 四个技能的规则文件、契约文档与模板 |
 | `runtime/` | 执行引擎：适配层加载、HTTP、台账、校验、数据库 |
 | `scripts/` | 命令行入口：`run.py`、`query.py`、`install.py`、`check_secrets.py` |
 | `tests/` | 单元测试与本地端到端冒烟 |

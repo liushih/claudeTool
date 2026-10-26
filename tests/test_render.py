@@ -15,10 +15,39 @@ MD = """# 周报
 
 
 def test_parse_markdown_splits_sections():
-    title, sections = parse_markdown(MD)
+    title, intro, sections = parse_markdown(MD)
     assert title == "周报"
+    assert intro == []
     assert [s[0] for s in sections] == ["本周完成", "下周计划"]
     assert sections[0][1] == ["完成提货单状态流转", "修复登录超时"]
+
+
+PREAMBLE_MD = """# 周报
+
+禅道数据缺失，本次仅基于代码提交。
+
+## 本周完成
+- 一
+"""
+
+
+def test_parse_markdown_keeps_preamble():
+    _title, intro, _sections = parse_markdown(PREAMBLE_MD)
+    assert intro == ["禅道数据缺失，本次仅基于代码提交。"]
+
+
+def test_preamble_survives_rendering(tmp_path):
+    docx_path = tmp_path / "p.docx"
+    render_docx(PREAMBLE_MD, docx_path, "周报")
+    docx_texts = [p.text for p in Document(docx_path).paragraphs]
+    assert "禅道数据缺失，本次仅基于代码提交。" in docx_texts
+
+    pptx_path = tmp_path / "p.pptx"
+    render_pptx(PREAMBLE_MD, pptx_path, "周报", "sub")
+    cover = "\n".join(
+        shape.text for shape in Presentation(pptx_path).slides[0].shapes if shape.has_text_frame
+    )
+    assert "禅道数据缺失" in cover
 
 
 def test_render_docx_writes_headings(tmp_path):
