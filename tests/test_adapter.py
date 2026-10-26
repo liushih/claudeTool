@@ -70,3 +70,16 @@ def test_unknown_before_target_raises(monkeypatch, tmp_path):
     monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="nope"):
         adapter.load_adapter("demo")
+
+
+def test_boolean_like_body_key_raises(monkeypatch, tmp_path):
+    _write_adapter(
+        tmp_path,
+        MINIMAL.replace(
+            "        call: POST /x",
+            "        call: POST /x\n        body:\n          no: ${BASE}",
+        ),
+    )
+    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    with pytest.raises(adapter.AdapterError, match="引号"):
+        adapter.load_adapter("demo")

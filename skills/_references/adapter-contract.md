@@ -39,6 +39,9 @@
 | `body` | 请求体，支持 `${ctx.xxx}` 与 `${prev.<step>.<field>}` |
 | `params` | 查询参数，替换规则同 `body` |
 
+`body` / `params` 的键名要加引号。YAML 会把 `no`、`yes`、`on`、`off`、`true`、`false` 解析成布尔，
+写成 `no:` 实际是 `false:`；加载时会直接报错提示加引号。
+
 ## 四条规则
 
 1. 只写结构，值一律 `${VAR}`；值只来自同目录 `.env`

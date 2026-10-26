@@ -51,6 +51,20 @@ class Adapter:
 _VAR = re.compile(r"\$\{([A-Za-z_][A-Za-z0-9_]*)\}")
 
 
+def _check_keys(step_id: str, where: str, value: Any) -> None:
+    if isinstance(value, dict):
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise AdapterError(
+                    f"步骤 {step_id} 的 {where} 含非字符串键 {key!r}；"
+                    f"YAML 会把 no / yes / on / off 解析成布尔，请给键加引号"
+                )
+            _check_keys(step_id, where, item)
+    elif isinstance(value, list):
+        for item in value:
+            _check_keys(step_id, where, item)
+
+
 def _substitute(value: Any, env: dict[str, str]) -> Any:
     if isinstance(value, str):
         def repl(match: re.Match[str]) -> str:
@@ -91,6 +105,8 @@ def load_adapter(project_id: str) -> Adapter:
             modes = [m for m in ("call", "poll", "impl") if s.get(m)]
             if len(modes) != 1:
                 raise AdapterError(f"步骤 {sid} 需要 exactly one of call/poll/impl，当前为 {modes}")
+            _check_keys(sid, "body", s.get("body"))
+            _check_keys(sid, "params", s.get("params"))
             steps.append(Step(
                 id=sid,
                 call=s.get("call"),
