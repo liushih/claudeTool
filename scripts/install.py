@@ -24,7 +24,7 @@ def _parse_skill(path: Path) -> tuple[dict, str]:
 
 
 def render(tool: str, name: str, body: str, description: str, tools_dir: Path) -> str:
-    body = body.replace("{{TOOLS_DIR}}", Path(tools_dir).as_posix())
+    body = body.replace("<TOOLS_DIR>", Path(tools_dir).as_posix())
     if tool == "claude":
         return f"---\nname: {name}\ndescription: {description}\n---\n\n{GENERATED}{body}"
     if tool == "cursor":

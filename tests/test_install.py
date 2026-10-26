@@ -12,7 +12,7 @@ def tools(tmp_path):
         d = root / "skills" / name
         d.mkdir(parents=True)
         (d / "SKILL.md").write_text(
-            f"---\nname: {name}\ndescription: {name} 测试\n---\n\n# {name}\n\n正文 {{TOOLS_DIR}}\n",
+            f"---\nname: {name}\ndescription: {name} 测试\n---\n\n# {name}\n\n正文 <TOOLS_DIR>\n",
             encoding="utf-8",
         )
     return root
@@ -25,6 +25,13 @@ def test_claude_skill_has_name_and_description(tmp_path, tools):
     assert "name: data-gen-core" in text
     assert "description:" in text
     assert by_name["data-gen-core"].name == "SKILL.md"
+
+
+def test_tools_dir_placeholder_is_replaced(tmp_path, tools):
+    paths = install(["claude"], "global", None, tools, home=tmp_path)
+    text = paths[0].read_text(encoding="utf-8")
+    assert "<TOOLS_DIR>" not in text
+    assert tools.as_posix() in text
 
 
 def test_cursor_rule_has_always_apply(tmp_path, tools):

@@ -20,14 +20,15 @@ description: >-
 
 ## 路径
 
-`{{TOOLS_DIR}}` 是工具仓库根目录。Claude 插件安装时改用 `${CLAUDE_PLUGIN_ROOT}`；Cursor / Codex 由 `install.ps1` 渲染成本机绝对路径。
+命令里的 `<TOOLS_DIR>` 是工具仓库根目录，按顺序确定：环境变量 `HEXIN_TOOLS` → `~/.hexin-tools/config.yaml` 的 `tools_dir` → 问用户仓库在哪，不要猜。通过 `install.ps1` 渲染安装时命令里已是绝对路径，可跳过。
 
-执行优先用 `{{TOOLS_DIR}}/.venv/Scripts/python.exe`；该文件不存在时用 `python`，并先 `pip install -r {{TOOLS_DIR}}/requirements.txt`。
+解释器优先用仓库内 `.venv/Scripts/python.exe`；不存在时用 `python`，并先 `pip install -r requirements.txt`。
 
 ## 执行
 
 ```bash
-python {{TOOLS_DIR}}/scripts/query.py --project <项目ID> --env dev \
+"<TOOLS_DIR>/.venv/Scripts/python.exe" "<TOOLS_DIR>/scripts/query.py" \
+  --project <项目ID> --env dev \
   --sql "select status from wms_order where external_order_no = %(no)s" --param no=<单号>
 ```
 

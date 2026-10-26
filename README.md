@@ -83,6 +83,8 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Remove -Target cursor,co
 
 本地数据目录不进 git。设计见 `docs/superpowers/specs/`，实现计划见 `docs/superpowers/plans/`。
 
+`setup.ps1` 会把本仓库路径写进 `%USERPROFILE%\.hexin-tools\config.yaml` 的 `tools_dir`，skill 靠它定位执行入口。仓库换位置后重跑一次 `setup.ps1`，或设置 `HEXIN_TOOLS`。
+
 ## 路径配置
 
 脚本默认按目录关系推断，不需要改代码。需要覆盖时设置环境变量：

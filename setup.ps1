@@ -13,6 +13,18 @@ Write-Host '[runtime] 安装依赖' -ForegroundColor Cyan
 & $rootPy -m pip install --upgrade pip
 & $rootPy -m pip install -r (Join-Path $root 'requirements.txt')
 
+# 记录工具目录，供 skill 定位（环境变量 HEXIN_TOOLS 优先）
+$dataHome = Join-Path $env:USERPROFILE '.hexin-tools'
+New-Item -ItemType Directory -Force -Path $dataHome | Out-Null
+$configFile = Join-Path $dataHome 'config.yaml'
+$configLines = @()
+if (Test-Path $configFile) {
+    $configLines = @(Get-Content $configFile -Encoding UTF8 | Where-Object { $_ -notmatch '^tools_dir:' })
+}
+$configLines += "tools_dir: $($root -replace '\\', '/')"
+Set-Content -Path $configFile -Value $configLines -Encoding UTF8
+Write-Host "[runtime] 工具目录已写入 $configFile" -ForegroundColor Cyan
+
 foreach ($tool in @('hexin-db-tools', 'hexin-data-gen')) {
     $dir = Join-Path $root $tool
     $py = Join-Path $dir '.venv\Scripts\python.exe'
