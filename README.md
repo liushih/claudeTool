@@ -107,6 +107,9 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Sco
 凭据只存在本机，不进仓库：`hexin-db-tools/.env`、`hexin-data-gen/.env`、
 `hexin-e2e/.env`、`~/.data-tools/projects/<项目ID>/.env`。
 
+工具包只认项目目录下那一份 `.env`：接口账号用于造数（必需），数据库连接用于
+`verify` 校验（可选，只读即可）。详见 [使用说明](docs/usage.md#先准备什么)。
+
 ## Features
 
 - 项目无关：接口用 `adapter.yaml` 描述，每个项目一份，互不影响

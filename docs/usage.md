@@ -33,6 +33,43 @@
 
 ## 二、第一次接入业务
 
+### 先准备什么
+
+接入前需要两套账号，都放在项目目录的 `.env` 里，不进仓库：
+
+| 配置 | 用途 | 必需 | 权限 |
+| --- | --- | --- | --- |
+| 系统登录账号 | 调接口造数 | 是 | 能执行目标业务操作即可 |
+| 数据库连接 | `verify` 校验结果 | 否 | 只读 |
+
+`.env` 的键名可以自己定，只要 `adapter.yaml` 里引用的 `${VAR}` 对得上。典型内容：
+
+```dotenv
+# 接口
+ACME_BASE_URL=
+ACME_USERNAME=
+ACME_PASSWORD=
+
+# 数据库：DEV 对应 adapter 里 envs.dev.db_prefix
+DEV_HOST=
+DEV_PORT=
+DEV_USER=
+DEV_PASSWORD=
+```
+
+`db_prefix: DEV` 会拼出 `DEV_HOST` / `DEV_PORT` / `DEV_USER` / `DEV_PASSWORD`；
+test、prod 环境同理换成 `TEST_` / `PROD_`。
+
+两点建议：
+
+- 接口账号用目标环境（dev/test）的，别拿生产账号造数
+- 数据库账号给只读，`verify` 只查不写；生产环境尤其不要带写权限
+
+数据库可以先不配。没有它照样能造数，只是 `verify` 段不生效，只能确认流程走完，
+确认不了数据最终状态。
+
+### 接入流程
+
 新业务第一次造数前，必须先有适配层。直接说「接入 XX 业务」即可，技能会：
 
 1. 确认项目 ID 与数据目录
