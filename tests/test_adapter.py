@@ -32,7 +32,7 @@ def _write_adapter(tmp_path, body: str):
 
 def test_missing_var_raises(monkeypatch, tmp_path):
     _write_adapter(tmp_path, MINIMAL.replace("${BASE}", "${NOPE}"))
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="NOPE"):
         adapter.load_adapter("demo")
 
@@ -42,21 +42,21 @@ def test_step_with_two_modes_raises(monkeypatch, tmp_path):
         tmp_path,
         MINIMAL.replace("        call: POST /x", "        call: POST /x\n        poll: GET /y"),
     )
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="exactly one"):
         adapter.load_adapter("demo")
 
 
 def test_entity_without_steps_raises(monkeypatch, tmp_path):
     _write_adapter(tmp_path, MINIMAL.replace("      - id: create\n        call: POST /x\n", ""))
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="steps"):
         adapter.load_adapter("demo")
 
 
 def test_loads_and_substitutes(monkeypatch, tmp_path):
     _write_adapter(tmp_path, MINIMAL)
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     a = adapter.load_adapter("demo")
     assert a.project == "demo"
     assert a.envs["dev"]["base_url"] == "http://example"
@@ -67,7 +67,7 @@ def test_unknown_before_target_raises(monkeypatch, tmp_path):
         tmp_path,
         MINIMAL.replace("        call: POST /x", "        call: POST /x\n        before: [nope]"),
     )
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="nope"):
         adapter.load_adapter("demo")
 
@@ -80,6 +80,6 @@ def test_boolean_like_body_key_raises(monkeypatch, tmp_path):
             "        call: POST /x\n        body:\n          no: ${BASE}",
         ),
     )
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(adapter.AdapterError, match="引号"):
         adapter.load_adapter("demo")

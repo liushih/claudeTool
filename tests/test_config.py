@@ -4,7 +4,7 @@ from runtime import config
 
 
 def test_data_home_prefers_env(monkeypatch, tmp_path):
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     assert config.data_home() == tmp_path
 
 
@@ -16,17 +16,17 @@ def test_load_env_keeps_equals_and_hash(tmp_path):
 
 def test_resolve_project_explicit_beats_config(monkeypatch, tmp_path):
     (tmp_path / "config.yaml").write_text("default_project: from_config\n", encoding="utf-8")
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     assert config.resolve_project("explicit") == "explicit"
 
 
 def test_resolve_project_falls_back_to_config(monkeypatch, tmp_path):
     (tmp_path / "config.yaml").write_text("default_project: from_config\n", encoding="utf-8")
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     assert config.resolve_project(None) == "from_config"
 
 
 def test_resolve_project_without_any_source_raises(monkeypatch, tmp_path):
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     with pytest.raises(config.ConfigError):
         config.resolve_project(None)

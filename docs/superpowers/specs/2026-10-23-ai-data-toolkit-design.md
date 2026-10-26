@@ -41,11 +41,11 @@
 |---|---|---|---|
 | 规则与引擎 | `C:\project\claudeTool` | 是（公开/私有仓库） | skill 源文件、通用 runtime、安装脚本 |
 | 业务代码 | 目标业务仓库 | 是（公司仓库） | 只放生成的工具入口文件，不放工具实现 |
-| 项目适配 | `%USERPROFILE%\.hexin-tools\projects\<项目ID>` | 否 | adapter.yaml、项目脚本、坑、凭据 |
+| 项目适配 | `%USERPROFILE%\.data-tools\projects\<项目ID>` | 否 | adapter.yaml、项目脚本、坑、凭据 |
 
 判定标准：代码中出现该项目的接口路径、字段名、枚举 → 项目层；只涉及循环、并发、记账、重试 → 引擎层。
 
-`HEXIN_DATA_HOME` 可覆盖本地根目录。
+`DATA_TOOLS_HOME` 可覆盖本地根目录。
 
 ## 4. 仓库结构
 
@@ -78,7 +78,7 @@ claudeTool/
 ## 5. 本地结构
 
 ```
-%USERPROFILE%\.hexin-tools\
+%USERPROFILE%\.data-tools\
   config.yaml                 默认项目、默认环境
   projects\<项目ID>\
     adapter.yaml              业务链声明

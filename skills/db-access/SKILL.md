@@ -20,7 +20,7 @@ description: >-
 
 ## 路径
 
-命令里的 `<TOOLS_DIR>` 是工具仓库根目录，按顺序确定：环境变量 `HEXIN_TOOLS` → `~/.hexin-tools/config.yaml` 的 `tools_dir` → 问用户仓库在哪，不要猜。通过 `install.ps1` 渲染安装时命令里已是绝对路径，可跳过。
+命令里的 `<TOOLS_DIR>` 是工具仓库根目录，按顺序确定：环境变量 `DATA_TOOLS_DIR` → `~/.data-tools/config.yaml` 的 `tools_dir` → 问用户仓库在哪，不要猜。通过 `install.ps1` 渲染安装时命令里已是绝对路径，可跳过。
 
 解释器优先用仓库内 `.venv/Scripts/python.exe`；不存在时用 `python`，并先 `pip install -r requirements.txt`。
 

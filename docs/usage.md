@@ -46,7 +46,7 @@
 产出都在本机：
 
 ```
-%USERPROFILE%\.hexin-tools\projects\<项目ID>\
+%USERPROFILE%\.data-tools\projects\<项目ID>\
 ├── adapter.yaml      业务规则
 ├── .env              接口地址与账号（不进 git）
 ├── pitfalls.md       踩坑记录
@@ -227,17 +227,24 @@ verify:
 
 ## 八、配置与路径
 
+**工具包**
+
 | 变量 | 默认值 | 说明 |
 |---|---|---|
-| `HEXIN_TOOLS` | `~/.hexin-tools/config.yaml` 的 `tools_dir` | 技能定位执行入口 |
-| `HEXIN_DATA_HOME` | `%USERPROFILE%\.hexin-tools` | 适配层、台账、坑库、凭据 |
+| `DATA_TOOLS_DIR` | `~/.data-tools/config.yaml` 的 `tools_dir` | 技能定位执行入口 |
+| `DATA_TOOLS_HOME` | `%USERPROFILE%\.data-tools` | 适配层、台账、坑库、凭据 |
+
+**旧工具（`hexin-db-tools/`、`hexin-data-gen/`、`hexin-e2e/`）**
+
+| 变量 | 默认值 | 说明 |
+|---|---|---|
 | `HEXIN_REPO` | `..\hexincloud` | 业务主仓库位置 |
 | `HEXIN_DB_ENV` | `hexin-db-tools\.env` | 三环境库账号文件 |
 | `HEXIN_SKILL_SCRIPTS` | `$HEXIN_REPO\dev-overlay\...\scripts` | 飞书台账脚本 |
 | `PW_PROFILE` | `..\pw-profile` | 浏览器登录态 |
 
 `setup.ps1` 会把仓库路径写进 `config.yaml`。仓库换位置后重跑一次 `setup.ps1`，
-或者设置 `HEXIN_TOOLS`。
+或者设置 `DATA_TOOLS_DIR`。
 
 ## 九、常见问题
 
@@ -245,7 +252,7 @@ verify:
 
 Claude Code 的插件内容在启动时加载。装完或更新后重启一次应用。
 仍然没有时检查 `%USERPROFILE%\.claude\plugins\installed_plugins.json` 里有没有
-`hexin-tools@hexin-tools`，以及 `cache\hexin-tools\hexin-tools\<版本>\` 目录是否存在。
+`data-tools@data-tools`，以及 `cache\data-tools\data-tools\<版本>\` 目录是否存在。
 
 **改了技能规则但不生效**
 
@@ -258,7 +265,7 @@ Claude Code 的插件内容在启动时加载。装完或更新后重启一次�
 
 **提示找不到工具目录**
 
-检查 `%USERPROFILE%\.hexin-tools\config.yaml` 的 `tools_dir`，或设置 `HEXIN_TOOLS`。
+检查 `%USERPROFILE%\.data-tools\config.yaml` 的 `tools_dir`，或设置 `DATA_TOOLS_DIR`。
 
 **业务接口报 token 无效**
 

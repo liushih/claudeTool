@@ -58,7 +58,7 @@ def test_cli_end_to_end_and_resume(tmp_path):
         (project / "adapter.yaml").write_text(ADAPTER, encoding="utf-8")
 
         root = Path(__file__).resolve().parents[1]
-        env = {**os.environ, "HEXIN_DATA_HOME": str(home)}
+        env = {**os.environ, "DATA_TOOLS_HOME": str(home)}
 
         def run():
             return subprocess.run(

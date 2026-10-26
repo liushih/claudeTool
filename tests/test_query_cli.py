@@ -5,7 +5,7 @@ from scripts.query import main
 
 @pytest.fixture
 def project(tmp_path, monkeypatch):
-    monkeypatch.setenv("HEXIN_DATA_HOME", str(tmp_path))
+    monkeypatch.setenv("DATA_TOOLS_HOME", str(tmp_path))
     proj = tmp_path / "projects" / "demo"
     proj.mkdir(parents=True)
     (proj / ".env").write_text("\n".join([

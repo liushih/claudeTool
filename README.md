@@ -50,7 +50,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
 `setup.ps1` 建虚拟环境、装依赖、生成 `.env`，并把工具目录写进
-`%USERPROFILE%\.hexin-tools\config.yaml`。
+`%USERPROFILE%\.data-tools\config.yaml`。
 
 #### 第二步：装进 AI 工具
 
@@ -58,7 +58,7 @@ Claude Code 走插件市场：
 
 ```text
 /plugin marketplace add liushih/claudeTool
-/plugin install hexin-tools@hexin-tools
+/plugin install data-tools@data-tools
 ```
 
 装好后 skill 出现在 Settings → Skills 的 "From marketplaces you added" 一栏。
@@ -86,25 +86,32 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Sco
 
 不需要改代码，必要时用环境变量覆盖：
 
+**工具包**
+
 | 变量 | 默认值 | 说明 |
 | --- | --- | --- |
-| `HEXIN_TOOLS` | `~/.hexin-tools/config.yaml` 的 `tools_dir` | 技能定位执行入口 |
-| `HEXIN_DATA_HOME` | `%USERPROFILE%\.hexin-tools` | 适配层、台账、坑库、凭据 |
+| `DATA_TOOLS_DIR` | `~/.data-tools/config.yaml` 的 `tools_dir` | 技能定位执行入口 |
+| `DATA_TOOLS_HOME` | `%USERPROFILE%\.data-tools` | 适配层、台账、坑库、凭据 |
+
+**旧工具（`hexin-db-tools/`、`hexin-data-gen/`、`hexin-e2e/`）**
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
 | `HEXIN_REPO` | `..\hexincloud` | 业务主仓库位置 |
 | `HEXIN_DB_ENV` | `hexin-db-tools\.env` | 三环境库账号文件 |
 | `HEXIN_SKILL_SCRIPTS` | `$HEXIN_REPO\dev-overlay\...\scripts` | 飞书台账脚本 |
 | `PW_PROFILE` | `..\pw-profile` | 浏览器登录态 |
 
-仓库换位置后重跑一次 `setup.ps1`，或设置 `HEXIN_TOOLS`。
+仓库换位置后重跑一次 `setup.ps1`，或设置 `DATA_TOOLS_DIR`。
 
 凭据只存在本机，不进仓库：`hexin-db-tools/.env`、`hexin-data-gen/.env`、
-`hexin-e2e/.env`、`~/.hexin-tools/projects/<项目ID>/.env`。
+`hexin-e2e/.env`、`~/.data-tools/projects/<项目ID>/.env`。
 
 ## Features
 
 - 项目无关：接口用 `adapter.yaml` 描述，每个项目一份，互不影响
 - 当前支持 HTTP JSON 接口 + PostgreSQL；其他数据库需扩 `runtime/db.py`
-- 规则本地化：字段、枚举、时序沉淀在 `~/.hexin-tools`，不重复推导
+- 规则本地化：字段、枚举、时序沉淀在 `~/.data-tools`，不重复推导
 - 缺失即停：没有适配层就转「接入」，不现场猜接口
 - 断点续跑：同一批次号重跑只补失败和没跑到的
 - 结果校验：`verify` SQL 不通过不计成功

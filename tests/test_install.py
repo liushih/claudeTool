@@ -48,7 +48,7 @@ def test_codex_block_is_not_duplicated(tmp_path, tools):
     install(["codex"], "project", repo, tools, home=tmp_path)
     install(["codex"], "project", repo, tools, home=tmp_path)
     text = (repo / "AGENTS.md").read_text(encoding="utf-8")
-    assert text.count("hexin-tools:begin") == 1
+    assert text.count("data-tools:begin") == 1
 
 
 def test_remove_deletes_generated(tmp_path, tools):

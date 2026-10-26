@@ -1,5 +1,5 @@
 {
-  "name": "hexin-tools",
+  "name": "data-tools",
   "owner": {
     "name": "liushihao",
     "email": "1739498098@qq.com"
@@ -10,7 +10,7 @@
   },
   "plugins": [
     {
-      "name": "hexin-tools",
+      "name": "data-tools",
       "source": "./",
       "description": "白话触发连库与批量造数：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
       "version": "1.0.0",

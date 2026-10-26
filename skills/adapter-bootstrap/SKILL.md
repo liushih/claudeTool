@@ -14,14 +14,14 @@ description: >-
 
 ## 前置检查
 
-1. 确认项目 ID 与数据目录（默认 `%USERPROFILE%\.hexin-tools`）
+1. 确认项目 ID 与数据目录（默认 `%USERPROFILE%\.data-tools`）
 2. 收集：接口地址、认证方式、目标状态
 3. 逐项确认：字段映射、枚举取值、异步时序
 4. 读 `<TOOLS_DIR>/skills/_references/adapter-contract.md` 与 `pitfalls.md`
 
 ## 路径
 
-命令里的 `<TOOLS_DIR>` 是工具仓库根目录，按顺序确定：环境变量 `HEXIN_TOOLS` → `~/.hexin-tools/config.yaml` 的 `tools_dir` → 问用户仓库在哪，不要猜。通过 `install.ps1` 渲染安装时命令里已是绝对路径，可跳过。
+命令里的 `<TOOLS_DIR>` 是工具仓库根目录，按顺序确定：环境变量 `DATA_TOOLS_DIR` → `~/.data-tools/config.yaml` 的 `tools_dir` → 问用户仓库在哪，不要猜。通过 `install.ps1` 渲染安装时命令里已是绝对路径，可跳过。
 
 解释器优先用仓库内 `.venv/Scripts/python.exe`；不存在时用 `python`，并先 `pip install -r requirements.txt`。
 

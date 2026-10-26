@@ -13,8 +13,8 @@ Write-Host '[runtime] 安装依赖' -ForegroundColor Cyan
 & $rootPy -m pip install --upgrade pip
 & $rootPy -m pip install -r (Join-Path $root 'requirements.txt')
 
-# 记录工具目录，供 skill 定位（环境变量 HEXIN_TOOLS 优先）
-$dataHome = Join-Path $env:USERPROFILE '.hexin-tools'
+# 记录工具目录，供 skill 定位（环境变量 DATA_TOOLS_DIR 优先）
+$dataHome = Join-Path $env:USERPROFILE '.data-tools'
 New-Item -ItemType Directory -Force -Path $dataHome | Out-Null
 $configFile = Join-Path $dataHome 'config.yaml'
 $configLines = @()

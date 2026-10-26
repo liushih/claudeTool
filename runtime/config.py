@@ -13,8 +13,8 @@ class ConfigError(Exception):
 
 
 def data_home() -> Path:
-    env = os.getenv("HEXIN_DATA_HOME")
-    return Path(env) if env else Path.home() / ".hexin-tools"
+    env = os.getenv("DATA_TOOLS_HOME")
+    return Path(env) if env else Path.home() / ".data-tools"
 
 
 def project_dir(project_id: str) -> Path:
