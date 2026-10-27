@@ -1,6 +1,6 @@
 {
   "name": "data-tools",
-  "description": "白话触发连库与批量造数：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
+  "description": "白话触发连库、批量造数与报告撰写：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
   "version": "1.1.0",
   "author": {
     "name": "liushihao",
