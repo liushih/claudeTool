@@ -29,6 +29,12 @@ def test_report_skill_asks_role():
         assert role in text
 
 
+def test_db_access_covers_redis_and_mongo():
+    text = (SKILLS / "db-access" / "SKILL.md").read_text(encoding="utf-8")
+    assert "redis.py" in text
+    assert "mongo.py" in text
+
+
 def test_data_gen_requires_adapter_and_forbids_improvisation():
     text = (SKILLS / "data-gen-core" / "SKILL.md").read_text(encoding="utf-8")
     assert "adapter-bootstrap" in text

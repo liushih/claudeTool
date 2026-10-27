@@ -222,6 +222,10 @@ verify:
 
 ## 六、数据库访问
 
+三种存储各有一个入口，配置都在项目 `.env`。
+
+**PostgreSQL**
+
 ```bash
 .venv/Scripts/python.exe scripts/query.py --project hexincloud --env dev \
   --sql "select delivery_no, delivery_status from wms_delivery_order order by id desc limit 3"
@@ -234,15 +238,47 @@ verify:
   --sql "select status from t where external_order_no = %(no)s" --param no=PB1026114338
 ```
 
-规则：
+**Redis**
 
-- 只读（`select`）直接执行
-- 写操作先回显环境、库、SQL，回显后直接执行，不再二次确认
-- `DROP` / `TRUNCATE` / 无 `WHERE` 的 `DELETE` 额外打印一行警示
-- 影响行数为 0 会明确报告，不当作成功
+```bash
+.venv/Scripts/python.exe scripts/redis.py --project hexincloud --env dev --cmd "GET user:1"
+.venv/Scripts/python.exe scripts/redis.py --project hexincloud --env dev --cmd "SCAN 0 MATCH order:* COUNT 50"
+.venv/Scripts/python.exe scripts/redis.py --project hexincloud --env dev --cmd "HGETALL cfg:warehouse"
+```
+
+**MongoDB**
+
+```bash
+.venv/Scripts/python.exe scripts/mongo.py --project hexincloud --env dev \
+  --collection logs --find '{"level": "error"}' --limit 20
+
+.venv/Scripts/python.exe scripts/mongo.py --project hexincloud --env dev \
+  --collection logs --aggregate '[{"$group": {"_id": "$level", "n": {"$sum": 1}}}]'
+
+.venv/Scripts/python.exe scripts/mongo.py --project hexincloud --env dev \
+  --collection logs --update '{"filter": {"_id": "x"}, "update": {"$set": {"a": 1}}}'
+```
+
+规则（三种通用）：
+
+- 只读（`select`、`GET`/`SCAN`/`HGETALL`、`find`/`aggregate`/`count`）直接执行
+- 写操作先回显环境、目标、命令，回显后直接执行，不再二次确认
+- `DROP` / `TRUNCATE` / 无 `WHERE` 的 `DELETE` / `FLUSHDB` / `FLUSHALL` /
+  无 filter 的批量删除，额外打印一行警示
+- 影响行数为 0 或 key 不存在，明确报告，不当作成功
 - 不自动提交事务
 
 命令行要跟一句「只读」或「可以写」，权限完全按你的口令走。
+
+**配置键名**
+
+```
+DEV_REDIS_HOST / DEV_REDIS_PORT / DEV_REDIS_PASSWORD / DEV_REDIS_DB
+DEV_MONGO_URI
+```
+
+`adapter.yaml` 的 `envs.dev` 里写 `redis_prefix: DEV_REDIS`、`mongo_prefix: DEV_MONGO`、
+`mongo_database: <库名>`。缺哪个键会直接报出来，不会回退到默认地址。
 
 ## 七、坑库
 
