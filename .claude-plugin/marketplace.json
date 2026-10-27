@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "白话触发连库、批量造数与报告撰写的技能集",
-    "version": "1.1.0"
+    "version": "1.1.1"
   },
   "plugins": [
     {
       "name": "data-tools",
       "source": "./",
       "description": "白话触发连库、批量造数与报告撰写：规则本地累积、凭据不入库，适配 Claude、Cursor、Codex",
-      "version": "1.1.0",
+      "version": "1.1.1",
       "author": {
         "name": "liushihao",
         "email": "1739498098@qq.com"

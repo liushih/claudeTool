@@ -21,6 +21,14 @@ def test_report_skill_asks_audience_and_scope():
     assert "collect.py" in text
 
 
+def test_report_skill_asks_role():
+    text = (SKILLS / "report-writer" / "SKILL.md").read_text(encoding="utf-8")
+    assert "角色" in text
+    assert ".role" in text
+    for role in ["开发", "测试", "产品"]:
+        assert role in text
+
+
 def test_data_gen_requires_adapter_and_forbids_improvisation():
     text = (SKILLS / "data-gen-core" / "SKILL.md").read_text(encoding="utf-8")
     assert "adapter-bootstrap" in text
