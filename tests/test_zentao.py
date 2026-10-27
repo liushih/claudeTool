@@ -10,13 +10,23 @@ from runtime.zentao import ZentaoClient, ZentaoError, collect_zentao
 
 TASKS_P1 = {
     "tasks": [
-        {"id": 1, "name": "任务一", "status": "done", "finishedDate": "2026-10-21"},
-        {"id": 2, "name": "任务二", "status": "done", "finishedDate": "2026-09-01"},
+        {"id": 1, "name": "任务一", "status": "done", "finishedDate": "2026-10-21", "finishedBy": "me"},
+        {"id": 2, "name": "任务二", "status": "done", "finishedDate": "2026-09-01", "finishedBy": "me"},
     ],
     "total": "2",
 }
 TASKS_P2 = {"tasks": [], "total": "2"}
-BUGS = {"bugs": [{"id": 9, "title": "Bug 一", "status": "resolved", "resolvedDate": "2026-10-22"}]}
+BUGS = {
+    "bugs": [
+        {
+            "id": 9,
+            "title": "Bug 一",
+            "status": "resolved",
+            "resolvedDate": "2026-10-22",
+            "resolvedBy": "me",
+        }
+    ]
+}
 
 
 class _Handler(BaseHTTPRequestHandler):
@@ -140,18 +150,77 @@ def test_pagination_mismatch_adds_warning(server, monkeypatch):
     assert any("total" in w or "未拉全" in w for w in warnings)
 
 
-def test_item_without_date_is_warned_not_dropped(server, monkeypatch):
+def _cfg(server):
+    return ZentaoConfig(api="v2", base_url=server, account="me", password="pw",
+                        product_id=31, project_ids=[73])
+
+
+def test_unfinished_task_is_skipped_without_warning(server, monkeypatch):
     import runtime.zentao as zt
 
     def fake_items(payload, key):
         if key == "executions":
             return payload.get("executions", [])
         if key == "tasks":
-            return [{"id": 3, "name": "无日期任务"}]
+            return [{"id": 3, "name": "未完成任务", "status": "wait"}]
         return payload.get(key, [])
 
     monkeypatch.setattr(zt, "_items_from", fake_items)
-    cfg = ZentaoConfig(api="v2", base_url=server, account="me", password="pw",
-                       product_id=31, project_ids=[73])
-    _tasks, _bugs, warnings = collect_zentao(cfg, date(2026, 10, 19), date(2026, 10, 25))
+    tasks, _bugs, warnings = collect_zentao(_cfg(server), date(2026, 10, 19), date(2026, 10, 25))
+    assert tasks == []
+    assert [w for w in warnings if "未解析" in w or "完成人" in w] == []
+
+
+def test_items_finished_or_resolved_by_others_are_excluded(server, monkeypatch):
+    import runtime.zentao as zt
+
+    def fake_items(payload, key):
+        if key == "executions":
+            return payload.get("executions", [])
+        if key == "tasks":
+            return [{"id": 4, "name": "别人的任务", "finishedDate": "2026-10-21", "finishedBy": "someone"}]
+        if key == "bugs":
+            return [{"id": 10, "title": "别人的 Bug", "resolvedDate": "2026-10-22", "resolvedBy": "someone"}]
+        return payload.get(key, [])
+
+    monkeypatch.setattr(zt, "_items_from", fake_items)
+    tasks, bugs, warnings = collect_zentao(_cfg(server), date(2026, 10, 19), date(2026, 10, 25))
+    assert tasks == [] and bugs == []
+    assert [w for w in warnings if "未解析" in w or "完成人" in w] == []
+
+
+def test_invalid_date_is_warned(server, monkeypatch):
+    import runtime.zentao as zt
+
+    def fake_items(payload, key):
+        if key == "executions":
+            return payload.get("executions", [])
+        if key == "tasks":
+            return [{"id": 5, "name": "坏日期", "finishedDate": "not-a-date", "finishedBy": "me"}]
+        return payload.get(key, [])
+
+    monkeypatch.setattr(zt, "_items_from", fake_items)
+    _tasks, _bugs, warnings = collect_zentao(_cfg(server), date(2026, 10, 19), date(2026, 10, 25))
     assert any("未解析" in w for w in warnings)
+
+
+def test_missing_owner_is_warned(server, monkeypatch):
+    import runtime.zentao as zt
+
+    def fake_items(payload, key):
+        if key == "executions":
+            return payload.get("executions", [])
+        if key == "tasks":
+            return [{"id": 6, "name": "无完成人", "finishedDate": "2026-10-21"}]
+        return payload.get(key, [])
+
+    monkeypatch.setattr(zt, "_items_from", fake_items)
+    _tasks, _bugs, warnings = collect_zentao(_cfg(server), date(2026, 10, 19), date(2026, 10, 25))
+    assert any("完成人" in w for w in warnings)
+
+
+def test_missing_account_and_authors_collects_nothing():
+    cfg = ZentaoConfig(api="v2", base_url="http://127.0.0.1:1", account="", product_id=31, project_ids=[73])
+    tasks, bugs, warnings = collect_zentao(cfg, date(2026, 10, 19), date(2026, 10, 25))
+    assert tasks == [] and bugs == []
+    assert any("按人过滤" in w for w in warnings)

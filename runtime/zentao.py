@@ -17,6 +17,8 @@ PAGE_SIZE = 1000
 
 _TASK_DATE_KEYS = ("finishedDate", "finished", "realFinished")
 _BUG_DATE_KEYS = ("resolvedDate", "resolved", "closedDate")
+TASK_OWNER_KEY = "finishedBy"
+BUG_OWNER_KEY = "resolvedBy"
 
 
 class ZentaoError(Exception):
@@ -171,20 +173,25 @@ def _pages(client: ZentaoClient, path: str, key: str, params: dict, warnings: li
     return items
 
 
-def _normalize(item: dict, date_keys: tuple[str, ...]) -> tuple[date, dict] | None:
+def _parse_day(item: dict, date_keys: tuple[str, ...]) -> tuple[date | None, str]:
+    """返回 (日期, 状态)。状态为 ok / missing（未完成）/ invalid（格式异常）。"""
     raw = next((item[key] for key in date_keys if item.get(key)), None)
     if raw is None:
-        return None
+        return None, "missing"
     day = str(raw)[:10]
     try:
-        when = date.fromisoformat(day)
+        return date.fromisoformat(day), "ok"
     except ValueError:
-        return None
-    return when, {
+        return None, "invalid"
+
+
+def _record(item: dict, day: str, owner: str) -> dict:
+    return {
         "id": item.get("id"),
         "title": item.get("name") or item.get("title") or "",
         "status": item.get("status", ""),
         "date": day,
+        "owner": owner,
     }
 
 
@@ -197,6 +204,10 @@ def collect_zentao(
 
     if cfg.api == "v1":
         return [], [], ["禅道 v1 驱动未实现，请改用 api: v2"]
+
+    owners = {item for item in [*cfg.authors, cfg.account] if item}
+    if not owners:
+        return [], [], ["禅道未配置 account/authors，无法按人过滤，本次不采集任务与 Bug"]
 
     try:
         client = ZentaoClient(cfg.base_url, cfg.account, cfg.password)
@@ -213,31 +224,39 @@ def collect_zentao(
         except ZentaoError as exc:
             warnings.append(f"禅道执行列表拉取失败（项目 {project_id}）：{exc}")
 
-    unparsed = 0
+    # 禅道的 browseType 在不同版本下不保证生效，完成人一律客户端过滤
+    invalid_dates = 0
+    missing_owner = 0
+    seen_tasks: set = set()
+
     for execution in executions:
         execution_id = execution.get("id")
         if execution_id is None:
             continue
         try:
-            items = _pages(
-                client,
-                f"/executions/{execution_id}/tasks",
-                "tasks",
-                {"browseType": "assignedtome"},
-                warnings,
-            )
+            items = _pages(client, f"/executions/{execution_id}/tasks", "tasks", {}, warnings)
         except ZentaoError as exc:
             warnings.append(f"禅道任务拉取失败（执行 {execution_id}）：{exc}")
             continue
 
         for item in items:
-            parsed = _normalize(item, _TASK_DATE_KEYS)
-            if parsed is None:
-                unparsed += 1
+            when, state = _parse_day(item, _TASK_DATE_KEYS)
+            if state == "invalid":
+                invalid_dates += 1
                 continue
-            when, normalized = parsed
-            if start <= when <= end:
-                tasks.append({**normalized, "execution": execution_id})
+            if when is None:
+                continue  # 未完成的任务没有完成时间，属正常情况
+            owner = str(item.get(TASK_OWNER_KEY) or "")
+            if not owner:
+                missing_owner += 1
+                continue
+            if owner not in owners or not (start <= when <= end):
+                continue
+            task_id = item.get("id")
+            if task_id in seen_tasks:
+                continue
+            seen_tasks.add(task_id)
+            tasks.append({**_record(item, when.isoformat(), owner), "execution": execution_id})
 
     if cfg.product_id:
         try:
@@ -245,23 +264,36 @@ def collect_zentao(
                 client,
                 f"/products/{cfg.product_id}/bugs",
                 "bugs",
-                {"browseType": "assignedtome"},
+                {"browseType": "all"},
                 warnings,
             )
         except ZentaoError as exc:
             warnings.append(f"禅道 Bug 拉取失败：{exc}")
             items = []
 
+        seen_bugs: set = set()
         for item in items:
-            parsed = _normalize(item, _BUG_DATE_KEYS)
-            if parsed is None:
-                unparsed += 1
+            when, state = _parse_day(item, _BUG_DATE_KEYS)
+            if state == "invalid":
+                invalid_dates += 1
                 continue
-            when, normalized = parsed
-            if start <= when <= end:
-                bugs.append({**normalized, "product": cfg.product_id})
+            if when is None:
+                continue  # 未解决的 Bug 没有解决时间
+            owner = str(item.get(BUG_OWNER_KEY) or "")
+            if not owner:
+                missing_owner += 1
+                continue
+            if owner not in owners or not (start <= when <= end):
+                continue
+            bug_id = item.get("id")
+            if bug_id in seen_bugs:
+                continue
+            seen_bugs.add(bug_id)
+            bugs.append({**_record(item, when.isoformat(), owner), "product": cfg.product_id})
 
-    if unparsed:
-        warnings.append(f"未解析 {unparsed} 条：缺少日期字段")
+    if invalid_dates:
+        warnings.append(f"未解析 {invalid_dates} 条：完成/解决时间格式无法识别")
+    if missing_owner:
+        warnings.append(f"{missing_owner} 条已完成记录缺少完成人，无法归属，已跳过")
 
     return tasks, bugs, warnings

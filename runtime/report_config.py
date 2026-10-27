@@ -30,6 +30,7 @@ class ZentaoConfig:
     password: str = ""
     product_id: int | None = None
     project_ids: list[int] = field(default_factory=list)
+    authors: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -68,6 +69,7 @@ def load_report_config(project_id: str, home: Path | None = None) -> ReportConfi
         password=str(zentao_raw.get("password") or ""),
         product_id=_as_int(zentao_raw.get("product_id")),
         project_ids=[_as_int(item) for item in (zentao_raw.get("project_ids") or []) if _as_int(item) is not None],
+        authors=[str(item) for item in (zentao_raw.get("authors") or [])],
     )
 
     if not git.repos and not zentao.base_url:

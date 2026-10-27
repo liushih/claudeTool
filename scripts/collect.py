@@ -53,13 +53,15 @@ def main(argv: list[str] | None = None, git_fn=None, zentao_fn=None) -> int:
     repos = git_fn(cfg.git.repos, cfg.git.authors, start, end)
     tasks, bugs, warnings = zentao_fn(cfg.zentao, start, end)
 
+    # 只有采集本身失败才算数据缺失；「缺少完成人」这类属于提醒，不影响完整性
+    fatal = [w for w in warnings if "失败" in w or w.startswith("禅道未配置")]
     label = period_label(args.type, start, end)
     data = {
         "project": args.project,
         "period": {"type": args.type, "start": start.isoformat(), "end": end.isoformat()},
         "sources": {
             "git": "ok" if all(repo.status == "ok" for repo in repos) else "partial",
-            "zentao": "ok" if not warnings else f"failed: {warnings[0]}",
+            "zentao": "ok" if not fatal else f"failed: {fatal[0]}",
         },
         "git": [asdict(repo) for repo in repos],
         "zentao": {"tasks": tasks, "bugs": bugs},
