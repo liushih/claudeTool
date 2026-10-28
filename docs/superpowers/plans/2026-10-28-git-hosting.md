@@ -51,7 +51,7 @@
 `check_merge` 规则，按顺序判断，首个命中即抛：
 
 1. `target` ∈ {test, prod} → `RuleViolation(rule="direct-merge", message="test/prod 只能通过 MR 合并")`
-2. `source_base == "prod"` 且 `target` ∈ {dev, test} → `RuleViolation(rule="prod-derived", ...)`
+2. `source_base == "prod"` 且 `target` ∈ {dev, test}（目标分支本身，即 `target` 字符串为 dev 或 test）→ `RuleViolation(rule="prod-derived", ...)`；目标为 `feature/test/...` 这类衍生分支时不拦
 3. `target == "dev"` 且 `bring_in` 非空 → 不抛异常。`check_merge` 返回该列表，`Repo.merge` 在 `confirm_bring_in=False` 时拒绝执行并打印清单；只有 `confirm_bring_in=True` 才继续（方案 C：不悄悄带入，但也不因合法的小差异卡死）
 
 - [ ] **Step 1: Write the failing test**
@@ -310,6 +310,8 @@ git commit -m "feat: git 托管项目配置与令牌读取"
     - `merge(source: str, target: str, source_base: str | None, forbidden_targets: list[str]) -> None`（先 `check_merge`，再 `git checkout target && git merge --no-ff source`；冲突时 `git merge --abort` 并抛 `RepoError` 列出冲突文件）
     - `push(branch: str) -> None`
     - `create_branch(name: str, target: str) -> None`：`git fetch origin`，然后 `git checkout -b <name> --no-track origin/<target>`；切后执行 `git rev-list --count origin/<target>..HEAD`，非 0 则抛 `RepoError`
+    - `verify_flow(prod_branch: str, test_branch: str, target: str) -> FlowReport`：`FlowReport` 含三份清单 `prod_into_test`、`test_net_vs_test`、`test_net_vs_target`，每份是 `list[Commit]` 加 `files: int`；`prod_only: list[str]` 为「在 origin/prod 中、不在 origin/test 中」的提交，非空则 `safe` 为 False。只读，不修改仓库
+    - `check_prod_derived(source_base: str | None, target_branch: str) -> None`：只当 `target_branch` 是 `dev` 或 `test`（分支名本身，不是衍生关系）且源分支以 prod 为基底时抛 `prod-derived`；目标为 test 衍生分支（`feature/test/...`）时不抛
     - `push` 的远端分支名固定为本地分支名：`git push -u origin <branch>:<branch>`；本地分支名为 test/dev/prod 时抛 `RuleViolation(rule="push-target")`
 
 - [ ] **Step 1: Write the failing test**
@@ -867,7 +869,7 @@ git commit -m "feat: git 托管适配器工厂"
 **Interfaces:**
 - Consumes: `load_git_host_config`、`save_user_tag`（Task 2）、`Repo`（Task 3）、`get_host`（Task 7）、`RuleViolation`（Task 1）、`HostError`（Task 4）
 - Produces: `main(argv: list[str] | None = None, host_fn=None, repo_fn=None) -> int`
-  - 子命令：`commit -m MSG`、`push`、`merge --from BRANCH --to TARGET [--confirm-bring-in]`、`mr create --from BRANCH --to TARGET --title T`、`mr status NUMBER`、`set-user-tag TAG`、`branch create --name NAME --target T`（从 `origin/T` 切出，先 fetch）
+  - 子命令：`commit -m MSG`、`push`、`merge --from BRANCH --to TARGET [--confirm-bring-in]`、`mr create --from BRANCH --to TARGET --title T`、`mr status NUMBER`、`set-user-tag TAG`、`branch create --name NAME --target T`（从 `origin/T` 切出，先 fetch）、`verify-flow --prod-branch P --test-branch T --target dev|test`（只读，输出三份清单，不合并）
   - 退出码：0 成功；1 规则违反或平台错误；2 参数或配置错误
 
 - [ ] **Step 1: Write the failing test**

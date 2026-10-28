@@ -141,6 +141,32 @@ GITLAB_TOKEN_HEXINCLOUD=
 
 **失败语义**：本地操作失败时不做远端操作；远端 API 失败时本地状态保持，报告 HTTP 状态与平台返回的错误摘要。
 
+### 7.1 prod 衍生分支的发布流程
+
+prod 上的改动不能直接进 test 或 dev。流程分三步，每步都由工具列清单：
+
+1. 从 `origin/prod` 切 prod 衍生分支 `feature/prod/<user_tag>/<任务号>-<描述>`，完成改动
+2. 从 `origin/test` 切 test 衍生分支 `feature/test/<user_tag>/<任务号>-<描述>`，把第 1 步的 prod 分支合入
+3. 把 test 衍生分支分别合到 test（只能 MR）和 dev（本地合并）
+
+**第 2 步的合并**属于 prod 来源，不是 test 来源，所以 `prod-derived` 规则只拦「prod 衍生分支直接合进 test 或 dev」，
+不拦「prod 衍生分支合进 test 衍生分支」。判断的是**目标分支本身**，不是目标分支名里的 test。
+
+### 7.2 差异验证（只读）
+
+子命令 `verify-flow --prod-branch P --test-branch T --target dev|test`，只读，不做合并，输出三份清单：
+
+| 清单 | 计算方式 | 期望 |
+|---|---|---|
+| A. prod 带入 test 衍生分支的内容 | `git rev-list --cherry-pick --right-only origin/test...P` | 只有你要带的 prod 改动 |
+| B. test 衍生分支相对 test 的净增量 | `git rev-list --cherry-pick --right-only origin/test...T`，及对应文件 | 只有你的改动，不含 prod 独有提交 |
+| C. test 衍生分支相对 dev 的净增量 | `git rev-list --cherry-pick --right-only origin/dev...T`，及对应文件 | 只有你要带进 dev 的改动 |
+
+每份清单都标注提交数与文件数。清单 B、C 中若出现 prod 独有的提交（在 `origin/prod` 中、但不在 `origin/test` 中），
+工具必须标红并停止后续合并。
+
+确认 A、B、C 符合预期后，才允许执行第 2 步的合并、第 3 步的 MR 与本地合并。
+
 ## 8. 错误处理
 
 | 情况 | 行为 |
