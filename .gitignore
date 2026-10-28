@@ -60,3 +60,6 @@ hexin-data-copy/
 # hexincloud 专用的造数脚本：项目业务衍生物，只留本地，不进 git
 hexin-data-gen/chain.py
 hexin-data-gen/probe_step.py
+
+# 含明文默认候选密码的校验脚本，只留本地，不进 git
+hexin-data-gen/verify_password.py
