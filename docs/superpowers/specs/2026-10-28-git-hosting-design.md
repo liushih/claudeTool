@@ -141,16 +141,26 @@ GITLAB_TOKEN_HEXINCLOUD=
 
 **失败语义**：本地操作失败时不做远端操作；远端 API 失败时本地状态保持，报告 HTTP 状态与平台返回的错误摘要。
 
-### 7.1 prod 衍生分支的发布流程
+### 7.1 生产热修复流程（统一规则）
 
-prod 上的改动不能直接进 test 或 dev。流程分三步，每步都由工具列清单：
+**统一规则**：凡是 prod 来源的改动，要进 test 或 dev，都必须经过一个从 `origin/test` 切出的同步分支，
+不直接把 prod 分支或热修复分支合进 test/dev。
 
-1. 从 `origin/prod` 切 prod 衍生分支 `feature/prod/<user_tag>/<任务号>-<描述>`，完成改动
-2. 从 `origin/test` 切 test 衍生分支 `feature/test/<user_tag>/<任务号>-<描述>`，把第 1 步的 prod 分支合入
-3. 把 test 衍生分支分别合到 test（只能 MR）和 dev（本地合并）
+流程（A 步与 C 步同时进行）：
 
-**第 2 步的合并**属于 prod 来源，不是 test 来源，所以 `prod-derived` 规则只拦「prod 衍生分支直接合进 test 或 dev」，
-不拦「prod 衍生分支合进 test 衍生分支」。判断的是**目标分支本身**，不是目标分支名里的 test。
+1. 从 `origin/prod` 切热修复分支 `feature/prod/<user_tag>/<任务号>-<描述>`，修复，提交
+2. **A**：同时开两件事
+   - 热修复分支开 MR 到 prod（`mr create --to prod`）
+   - 从 `origin/test` 切同步分支 `feature/test/<user_tag>/<任务号>-<描述>`（`branch create --target test`）
+3. **C**：同步分支不合并热修复分支本身，而是用 `cherry-pick` 搬热修复的提交，把改动按内容带过去
+4. 同步分支开 MR 到 test（`mr create --to test`）
+5. 同步分支本地合并到 dev 前，`verify-flow` 出清单 C，确认只带入热修复的改动，再执行合并并推送
+
+**B（合并方式）**：热修复合到 prod 的 MR 可以用 merge、fast-forward 或 squash，三种都不影响同步分支。
+同步分支只用 `cherry-pick`，不依赖 prod 上的提交哈希，因此不会因 squash 产生重复提交。
+
+**异常处理（来自 A 的决定）**：任一 MR 检测到异常（冲突、被拒、与 prod 不一致），工具停止后续步骤并通知用户。
+恢复方式是：重新从对应源头切分支，重新提交，不在原分支上修补。
 
 ### 7.2 差异验证（只读）
 
