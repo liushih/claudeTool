@@ -23,3 +23,22 @@ def test_allows_env_reference(tmp_path):
 def test_clean_tree_returns_zero(tmp_path):
     (tmp_path / "ok.py").write_text("x = 1\n", encoding="utf-8")
     assert main([str(tmp_path)]) == 0
+
+
+def test_flags_gitlab_token(tmp_path):
+    f = tmp_path / "a.txt"
+    f.write_text("glpat-abcdefghij0123456789\n", encoding="utf-8")  # noqa: secrets
+    hits = scan([f])
+    assert hits and "GitLab" in hits[0][2]
+
+
+def test_gitlab_token_in_plain_line_is_flagged(tmp_path):
+    f = tmp_path / "a.py"
+    f.write_text("token = glpat-abcdefghij0123456789\n", encoding="utf-8")  # noqa: secrets
+    assert scan([f])
+
+
+def test_gitlab_rule_ignores_short_prefix_mention(tmp_path):
+    f = tmp_path / "a.md"
+    f.write_text("示例令牌形式为 glpat-… 不含真实值\n", encoding="utf-8")
+    assert scan([f]) == []

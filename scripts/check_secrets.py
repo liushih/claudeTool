@@ -18,6 +18,7 @@ PATTERNS = [
      "疑似明文凭据 {key}"),
     (re.compile(r"\bghp_[A-Za-z0-9]{20,}"), "GitHub token"),
     (re.compile(r"\bgithub_pat_[A-Za-z0-9_]{20,}"), "GitHub fine-grained token"),
+    (re.compile(r"\bglpat-[A-Za-z0-9_-]{20,}"), "GitLab token"),
     (re.compile(r"BEGIN [A-Z ]*PRIVATE KEY"), "私钥"),
     (re.compile(r"\b(?:10\.\d{1,3}|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)\d{1,3}\.\d{1,3}\b"),
      "内网地址"),

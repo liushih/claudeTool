@@ -63,3 +63,6 @@ hexin-data-gen/probe_step.py
 
 # 含明文默认候选密码的校验脚本，只留本地，不进 git
 hexin-data-gen/verify_password.py
+
+# 令牌缓存及其备份（任何 .token 开头的文件），只留本地
+.token*
