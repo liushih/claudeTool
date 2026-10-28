@@ -53,3 +53,6 @@ elk-browser/
 
 # superpowers 执行工作区
 .superpowers/
+
+# 一次性数据操作脚本：项目专用，只留本地
+hexin-data-copy/
