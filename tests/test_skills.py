@@ -6,7 +6,7 @@ import yaml
 SKILLS = Path(__file__).resolve().parents[1] / "skills"
 
 
-@pytest.mark.parametrize("name", ["data-gen-core", "db-access", "adapter-bootstrap", "report-writer"])
+@pytest.mark.parametrize("name", ["data-gen-core", "db-access", "adapter-bootstrap", "report-writer", "git-workflow"])
 def test_skill_has_frontmatter_and_sections(name):
     text = (SKILLS / name / "SKILL.md").read_text(encoding="utf-8")
     assert text.startswith("---")
@@ -53,3 +53,29 @@ def test_adapter_example_parses():
         (SKILLS / "_TEMPLATE" / "adapter.example.yaml").read_text(encoding="utf-8")
     )
     assert data["version"] == 1 and "entities" in data
+
+
+def test_git_skill_requires_user_tag_and_confirmation():
+    text = (SKILLS / "git-workflow" / "SKILL.md").read_text(encoding="utf-8")
+    assert "user_tag" in text
+    assert "set-user-tag" in text
+    assert "回显" in text
+    assert "确认" in text
+    assert "git_host.py" in text
+
+
+def test_git_skill_forbids_pasting_token_in_chat():
+    text = (SKILLS / "git-workflow" / "SKILL.md").read_text(encoding="utf-8")
+    assert "不要让用户把令牌贴进对话" in text
+
+
+def test_git_skill_routes_test_and_prod_merge_to_mr():
+    text = (SKILLS / "git-workflow" / "SKILL.md").read_text(encoding="utf-8")
+    assert "mr create" in text
+    assert "test" in text and "prod" in text
+
+
+def test_git_skill_reports_existing_mr_on_conflict():
+    text = (SKILLS / "git-workflow" / "SKILL.md").read_text(encoding="utf-8")
+    assert "409" in text and "422" in text
+    assert "已存在" in text
