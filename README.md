@@ -150,7 +150,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 ## Contributions
 
-Issue 和 PR 都欢迎。提交前请跑一次 `check_secrets.py`。
+Issue 和 PR 都欢迎。提交前请先读 [CONTRIBUTING.md](CONTRIBUTING.md)：只有通用能力进 git，项目衍生物一律不进。再跑一次 `check_secrets.py`。
 
 ## Acknowledgement
 
