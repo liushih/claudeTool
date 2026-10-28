@@ -56,3 +56,7 @@ elk-browser/
 
 # 一次性数据操作脚本：项目专用，只留本地
 hexin-data-copy/
+
+# hexincloud 专用的造数脚本：项目业务衍生物，只留本地，不进 git
+hexin-data-gen/chain.py
+hexin-data-gen/probe_step.py
