@@ -119,6 +119,9 @@ GITLAB_TOKEN_HEXINCLOUD=
 | prod 衍生分支不直接合 test/dev | `prod-branch-not-merged-directly-to-test-dev` | 源分支以 prod 为基底时拒绝合到 test/dev |
 | 合 dev 前算净增量 | `merge-feature-test-branch-drags-test-into-dev` | 合并前列出将带入的提交数与文件数，超出源分支自身范围则拒绝 |
 | 合并后删源分支 | `branch-naming-and-hygiene` | 只提示，不自动删除 |
+| 从目标分支切新分支 | 本次确认 | `branch create` 从 `origin/<目标>` 切出，`--no-track`，不继承其它分支的上游 |
+| 推送只到同名远端分支 | 本次确认 | `push` 的远端分支名必须与本地相同；禁止推到 test/dev/prod 同名分支 |
+| 目标为 test/prod 只能建 MR | 本次确认 | 需要「合并到 test」时执行 `mr create --to test`，不提供本地合并 |
 
 **分支名中的 `user_tag`**：第一次使用询问，之后写入 `git_hosts.yaml`。规则只校验格式，不预设取值。
 
@@ -129,7 +132,8 @@ GITLAB_TOKEN_HEXINCLOUD=
 | 子命令 | 作用 | 关键校验 |
 |---|---|---|
 | `commit -m <消息>` | 提交已暂存改动 | 提交信息格式、正文、禁止路径 |
-| `push` | 推送当前分支 | 分支名格式；不推 test/prod 的直接合并结果 |
+| `push` | 推送当前分支到同名远端分支 | 分支名格式；远端分支名与本地一致；本地分支名为 test/dev/prod 时拒绝 |
+| `branch create --name N --target T` | 从 `origin/T` 切出新分支 | 先 fetch；`--no-track`；切后校验 `origin/T..HEAD` 为空 |
 | `pull [--from dev]` | 拉取目标分支 | 本地有未提交改动时拒绝 |
 | `merge --from <分支> --to dev` | 本地合并到 dev 后推送 | 净增量、prod 衍生、feature/test 规则 |
 | `mr create --from <分支> --to test` | 调平台 API 建 MR | 目标为 test/prod 时必须走这里 |
