@@ -50,16 +50,20 @@ def main(argv: list[str] | None = None, client_factory=None) -> int:
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--run-id")
     parser.add_argument("--env", default="dev")
+    parser.add_argument("--stop-at", help="覆盖适配层的 stop_at，如 WAIT_SEND")
     args = parser.parse_args(argv)
 
     adapter = load_adapter(args.project)
     if args.entity not in adapter.entities:
         parser.error(f"未知业务对象 {args.entity}，可选：{', '.join(adapter.entities)}")
     entity = adapter.entities[args.entity]
+    if args.stop_at:
+        entity.stop_at = args.stop_at
 
     env = adapter.envs.get(args.env)
     if not env:
         parser.error(f"未知环境 {args.env}")
+    env = {**env, "name": args.env}
 
     base = project_dir(args.project)
     if client_factory is None:
@@ -70,7 +74,7 @@ def main(argv: list[str] | None = None, client_factory=None) -> int:
     ledger = Ledger(base / "ledger.csv")
     result = run_batch(
         entity, client_factory, args.count, args.workers, run_id, ledger,
-        impl_root=base, verify=_build_verify(entity, env, base),
+        impl_root=base, verify=_build_verify(entity, env, base), env=env,
     )
 
     print(f"run_id={run_id} done={result['done']} failed={result['failed']}")

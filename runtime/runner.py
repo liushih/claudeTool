@@ -124,7 +124,8 @@ def run_entity(entity: Entity, client, ctx: dict, impl_root: Path | None = None)
 
 
 def run_batch(entity: Entity, client_factory, count: int, workers: int,
-              run_id: str, ledger, impl_root: Path | None = None, verify=None) -> dict:
+              run_id: str, ledger, impl_root: Path | None = None, verify=None,
+              env: dict | None = None) -> dict:
     done = ledger.read_done(run_id)
     todo = [i for i in range(count) if i not in done]
     if not todo:
@@ -140,7 +141,8 @@ def run_batch(entity: Entity, client_factory, count: int, workers: int,
         client = None
         for idx in indexes:
             external_no = ""
-            ctx = {"external_no": "", "values": {}, "stage": "init"}
+            ctx = {"external_no": "", "values": {}, "stage": "init",
+                   "env": env or {}, "stop_at": entity.stop_at}
             try:
                 external_no = entity.id_rule.format(run_id=run_id, idx=idx)
                 ctx["external_no"] = external_no
