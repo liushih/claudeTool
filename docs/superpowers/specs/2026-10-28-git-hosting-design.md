@@ -153,6 +153,7 @@ GITLAB_TOKEN_HEXINCLOUD=
    - 热修复分支开 MR 到 prod（`mr create --to prod`）
    - 从 `origin/test` 切同步分支 `feature/test/<user_tag>/<任务号>-<描述>`（`branch create --target test`）
 3. **C**：同步分支不合并热修复分支本身，而是用 `cherry-pick` 搬热修复的提交，把改动按内容带过去
+   - 搬哪些提交：取热修复分支相对 `origin/prod` 的全部提交，即 `git rev-list --reverse --cherry-pick --right-only origin/prod...<热修复分支>`，按时间正序。只取热修复自己的提交，不取 prod 上已有的提交。多个提交全部搬，任何一个冲突即停止。
 4. 同步分支开 MR 到 test（`mr create --to test`）
 5. 同步分支本地合并到 dev 前，`verify-flow` 出清单 C，确认只带入热修复的改动，再执行合并并推送
 
