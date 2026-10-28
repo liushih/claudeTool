@@ -2,7 +2,7 @@
 
 面向日常使用者。装好之后，日常只需要用白话触发，不需要手写命令。
 
-- [一、四个技能怎么选](#一四个技能怎么选)
+- [一、五个技能怎么选](#一五个技能怎么选)
 - [二、第一次接入业务](#二第一次接入业务)
 - [三、适配层写法](#三适配层写法)
 - [四、批量造数](#四批量造数)
@@ -12,10 +12,11 @@
 - [八、配置与路径](#八配置与路径)
 - [九、常见问题](#九常见问题)
 - [十、写报告](#十写报告)
+- [十一、代码托管](#十一代码托管)
 
 ---
 
-## 一、四个技能怎么选
+## 一、五个技能怎么选
 
 | 意图 | 说法 | 技能 |
 |---|---|---|
@@ -23,16 +24,18 @@
 | 连库 | 查库、查一下、连、SQL、改数据 | `db-access` |
 | 接入 | 接入、新业务、第一次、打通、适配 | `adapter-bootstrap` |
 | 报告 | 日报、周报、月报、述职、汇报材料 | `report-writer` |
+| 代码托管 | 提交、推送、合并、建 MR、开分支、热修 | `git-workflow` |
 | 沉淀 | 记下来、加到坑里、更新规则 | 写 `pitfalls.md` |
 
 同时命中多个时按这个顺序：
 
 1. 含「接入 / 新业务」→ 走接入，即使同时提到造数
 2. 含「日报 / 周报 / 月报 / 述职」→ 写报告
-3. 有造数动词且带业务名词 → 批量造数
-4. 只有动词没有名词（「造点数据」）→ 追问是哪个业务
-5. 有 SQL 关键字或表名 → 数据库访问
-6. 都不命中 → 直说没听懂，不猜
+3. 含「提交 / 推送 / 合并 / 建 MR / 开分支 / 热修」→ 代码托管
+4. 有造数动词且带业务名词 → 批量造数
+5. 只有动词没有名词（「造点数据」）→ 追问是哪个业务
+6. 有 SQL 关键字或表名 → 数据库访问
+7. 都不命中 → 直说没听懂，不猜
 
 ## 二、第一次接入业务
 
@@ -467,3 +470,84 @@ Markdown 是唯一内容源，Word 和 PPT 都从它渲染：
 
 禅道连不上或未授权时，报告仍然生成，但开头会写「禅道数据缺失，本次仅基于代码提交」。
 某个仓库路径不存在时同样跳过并提示，不会静默少一块。
+
+## 十一、代码托管
+
+支持 GitHub、Gitee、GitLab。令牌放在项目 `.env` 里，工具只按键名读取，不会出现在命令行、日志或报告中。
+
+### 配置
+
+`~/.data-tools/projects/<项目ID>/git_hosts.yaml`：
+
+```yaml
+user_tag: lsh                 # 第一次使用时询问并写入，之后沿用
+repo_path: C:/project/demo    # 本地仓库路径
+host:
+  kind: gitlab                # github | gitee | gitlab
+  base_url: http://git.example.com   # GitHub、Gitee 可省略，使用平台默认地址
+  project_path: group/demo    # GitLab 为 group/project；GitHub、Gitee 为 owner/repo
+  token_key: GITLAB_TOKEN_DEMO       # 对应项目 .env 中的键名
+branches:
+  dev: dev
+  test: test
+  prod: prod
+rules:
+  forbid_commit_paths:        # 本地环境配置不提交
+    - pom.xml
+    - vite.config.ts
+```
+
+项目 `.env` 中填写令牌：
+
+```dotenv
+GITLAB_TOKEN_DEMO=
+```
+
+### 常用命令
+
+```bash
+.venv/Scripts/python.exe scripts/git_host.py --project demo set-user-tag lsh
+.venv/Scripts/python.exe scripts/git_host.py --project demo branch create --name feature/dev/lsh/1234-描述 --target dev
+.venv/Scripts/python.exe scripts/git_host.py --project demo commit -m "feat-1234: 描述
+
+正文说明本次修改。"
+.venv/Scripts/python.exe scripts/git_host.py --project demo push --branch feature/dev/lsh/1234-描述
+.venv/Scripts/python.exe scripts/git_host.py --project demo mr create --from feature/test/lsh/1234-描述 --to test --title "标题"
+.venv/Scripts/python.exe scripts/git_host.py --project demo merge --from feature/dev/lsh/1234-描述 --to dev
+.venv/Scripts/python.exe scripts/git_host.py --project demo verify-flow --prod-branch prod --test-branch feature/test/lsh/1234-描述 --target dev
+.venv/Scripts/python.exe scripts/git_host.py --project demo hotfix sync --fix-branch feature/prod/lsh/1234-热修 --task 1234
+```
+
+### 规则
+
+工具会在执行前检查这些规则，违反则拒绝并给出规则名：
+
+| 规则名 | 含义 |
+|---|---|
+| `branch-naming` | 分支名须为 `feature/<目标>/<用户标识>/<任务号>-<描述>`，且用户标识与配置一致 |
+| `commit-message` | 首行须为 `feat-<任务号>: <描述>` 或 `fix-<任务号>: <描述>`，且必须有正文 |
+| `forbidden-path` | 禁止提交 `forbid_commit_paths` 中的文件 |
+| `direct-merge` | 合到 test、prod 只能建 MR，不能本地合并 |
+| `prod-derived` | prod 衍生分支不能直接合到 test 或 dev，要先经过 test 衍生的同步分支 |
+| `net-increment` | 合到 dev 时若带入了非本分支的内容，先列清单，确认后加 `--confirm-bring-in` |
+| `push-target` | 本地分支名为 test、dev、prod 时不能推送，推送只到同名远端分支 |
+
+分支名只允许一个任务号，因此「一分支一任务」由分支名格式保证。
+
+### 分支从哪里切
+
+- 改动最终进 dev：从 `origin/dev` 切
+- 改动最终进 test：从 `origin/test` 切
+- 热修复：从 `origin/prod` 切，之后按热修复流程同步
+
+`branch create` 从 `origin/<目标>` 切出，不跟踪上游，切完会核对起点与目标一致。
+
+### 热修复流程
+
+1. 从 `origin/prod` 切热修复分支，修复，提交
+2. 热修复分支开 MR 到 prod
+3. 从 `origin/test` 切同步分支，执行 `hotfix sync`，用 cherry-pick 搬热修复的提交
+4. 同步分支开 MR 到 test
+5. 同步分支合到 dev 前，用 `verify-flow` 核对，确认只带入热修复的改动
+
+遇到 MR 冲突或 cherry-pick 冲突，工具会停止并列出冲突文件，不会自动解决。

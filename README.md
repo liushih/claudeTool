@@ -22,6 +22,8 @@
 | 在 dev 造 100 张提货单，跑到 UPLOADED | 按本地规则并发造数，逐单记台账 |
 | 同一批次重跑，把失败的补上 | 跳过已完成，只补失败 |
 | 写这周的周报，顺便出 Word | 采集提交与禅道任务，组织成稿并渲染 |
+| 把这个改动提交并推到 dev | 检查提交信息与禁止路径，回显后推送 |
+| 从 test 切个分支，建 MR 到 test | 从 `origin/test` 切出分支，回显后建 MR |
 | 接入 XX 新业务 | 陪跑并生成该业务的规则与坑库 |
 
 业务规则不写在提示词里：每个项目的字段、枚举、时序存在本机适配层，用一次记一次。
@@ -114,8 +116,9 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1 -Target cursor,codex -Sco
 ## Features
 
 - 项目无关：接口用 `adapter.yaml` 描述，每个项目一份，互不影响
-- 当前支持 HTTP JSON 接口 + PostgreSQL；其他数据库需扩 `runtime/db.py`
+- 数据库：PostgreSQL、Redis、MongoDB；接口：HTTP JSON
 - 报告生成：日报/周报/月报/述职，Markdown 为源，可渲染 Word / PPT
+- 代码托管：GitHub、Gitee、GitLab 的提交、推送、合并与建 MR，规则由工具强制执行
 - 规则本地化：字段、枚举、时序沉淀在 `~/.data-tools`，不重复推导
 - 缺失即停：没有适配层就转「接入」，不现场猜接口
 - 断点续跑：同一批次号重跑只补失败和没跑到的
@@ -141,7 +144,7 @@ powershell -ExecutionPolicy Bypass -File .\setup.ps1
 
 | 路径 | 用途 |
 | --- | --- |
-| `skills/` | 四个技能的规则文件、契约文档与模板 |
+| `skills/` | 五个技能的规则文件、契约文档与模板 |
 | `runtime/` | 执行引擎：适配层加载、HTTP、台账、校验、数据库 |
 | `scripts/` | 命令行入口：`run.py`、`query.py`、`collect.py`、`render.py`、`redis.py`、`mongo.py`、`install.py`、`check_secrets.py` |
 | `tests/` | 单元测试与本地端到端冒烟 |
