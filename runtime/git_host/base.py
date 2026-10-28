@@ -13,9 +13,10 @@ MESSAGE_LIMIT = 200
 
 
 class HostError(Exception):
-    def __init__(self, message: str, status: int | None = None):
+    def __init__(self, message: str, status: int | None = None, existing: "MergeRequest | None" = None):
         super().__init__(message)
         self.status = status
+        self.existing = existing
 
 
 @dataclass
@@ -50,7 +51,7 @@ class GitHost(ABC):
             return text.replace(self.token, "***")
         return text
 
-    def _request(self, method: str, path: str, *, json=None, params=None) -> dict:
+    def _request(self, method: str, path: str, *, json=None, params=None):
         url = f"{self.base_url}{path}"
         timeout = READ_TIMEOUT if method.upper() == "GET" else WRITE_TIMEOUT
         try:
@@ -76,4 +77,4 @@ class GitHost(ABC):
                 message += f"：{self._redact(detail)}"
             raise HostError(message, status=resp.status_code)
 
-        return body if isinstance(body, dict) else {}
+        return body
